@@ -18,3 +18,7 @@ export async function* things() {
     yield* manyThings();
     yield* moreThings();
 }
+
+export function bad() {
+    throw new Error('FAIL');
+}

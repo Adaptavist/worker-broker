@@ -18,3 +18,5 @@ export interface WorkerMsgResult<F extends Fn>
 }
 
 export type WorkerMsg<F extends Fn> = WorkerMsgCall<F> | WorkerMsgResult<F>;
+
+export type WorkerSupplier = (moduleSpecifier: string) => Worker;

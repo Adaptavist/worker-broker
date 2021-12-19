@@ -1,13 +1,17 @@
 import { callWorkerFn } from './call.ts';
-import type { Fn } from './types.ts';
+import type { Fn, WorkerSupplier } from './types.ts';
 
 declare const self: Worker;
 
+/**
+ * Create a proxy for a single function in the worker.
+ * The worker is fetched only when required.
+ */
 export const workerFnProxy = (sourceModule: string) =>
     <F extends Fn>(
         moduleSpecifier: URL | string,
         functionName: string,
-        worker: Worker = self,
+        getWorker: WorkerSupplier = () => self,
     ) => (...args: Parameters<F>): Promise<ReturnType<F>> =>
         callWorkerFn<F>({
             kind: 'call',
@@ -18,10 +22,14 @@ export const workerFnProxy = (sourceModule: string) =>
                 : moduleSpecifier).href,
             functionName,
             args,
-        }, worker);
+        }, getWorker);
 
-export const workerProxy = (sourceModule: string) =>
-    <M>(moduleSpecifier: URL | string, worker: Worker = self): M =>
+/**
+ * Create a proxy object of all functions of the module in the Worker
+ * The worker is fetched only when required.
+ */
+ export const workerProxy = (sourceModule: string) =>
+    <M>(moduleSpecifier: URL | string, getWorker: WorkerSupplier = () => self): M =>
         // deno-lint-ignore no-explicit-any
         new Proxy({} as any, {
             get: (target, functionName) => {
@@ -31,7 +39,7 @@ export const workerProxy = (sourceModule: string) =>
                         fn = workerFnProxy(sourceModule)(
                             moduleSpecifier,
                             functionName,
-                            worker,
+                            getWorker,
                         );
                         target[functionName] = fn;
                     }
