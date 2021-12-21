@@ -1,12 +1,17 @@
-import { callWorkerFn } from './call.ts';
-import { debug } from './debug.ts';
-import { workerFnProxy, workerProxy } from './proxy.ts';
-import type { Fn, WorkerMsgCall, WorkerMsgResult } from './types.ts';
+import { callWorkerFn } from '../internal/callWorkerFn.ts';
+import { debug } from '../internal/debug.ts';
+import { workerFnProxy, workerProxy } from '../internal/proxy.ts';
+import type {
+    Fn,
+    WorkerMsgCall,
+    WorkerMsgResult,
+    WorkerProxy,
+} from '../internal/types.ts';
+import { marshall } from '../internal/marshall.ts';
 
-const workerURL = new URL('./worker.ts', import.meta.url);
+const workerURL = new URL('../internal/worker.ts', import.meta.url);
 
 export class WorkerBroker {
-
     /**
      * Cache of workers
      */
@@ -15,7 +20,7 @@ export class WorkerBroker {
     /**
      * Get a new or existing worker for the given module.
      * The worker will be cached and reused if the same module is requested again.
-     * 
+     *
      * @param moduleSpecifier must be an absolute URL for the module
      * @return a new or existing Worker for the module
      */
@@ -28,12 +33,12 @@ export class WorkerBroker {
         }
 
         return worker;
-    }
+    };
 
     /**
      * Create a new worker for the given module.
      * This is used by getWorker.
-     * 
+     *
      * @param moduleSpecifier must be an absolute URL for the module
      * @returns always a new Worker instance
      */
@@ -45,12 +50,14 @@ export class WorkerBroker {
         worker.addEventListener('message', this.handleMessage);
 
         return worker;
-    }
-    
+    };
+
     /**
      * Common handler for all incoming messages from workers
      */
-    handleMessage = async ({ data }: MessageEvent<WorkerMsgCall<Fn>>) => {
+    private handleMessage = async (
+        { data }: MessageEvent<WorkerMsgCall<Fn>>,
+    ) => {
         if (data.kind === 'call' && data.sourceModule) {
             debug('container received call:', data);
 
@@ -58,9 +65,11 @@ export class WorkerBroker {
             try {
                 // Call fn in target module
                 props = {
-                    result: await callWorkerFn(
-                        data,
-                        this.getWorker,
+                    result: await marshall(
+                        await callWorkerFn(
+                            data,
+                            this.getWorker,
+                        ),
                     ),
                 };
             } catch (error: unknown) {
@@ -82,12 +91,12 @@ export class WorkerBroker {
     /**
      * Create a proxy object of all functions of the module in the Worker
      */
-    workerProxy = <M>(targetModule: URL): M => {
+    workerProxy = <M>(targetModule: URL): WorkerProxy<M> => {
         return workerProxy(undefined!)(
             targetModule,
             this.getWorker,
         );
-    }
+    };
 
     /**
      * Create a proxy for a single function in the worker
@@ -101,7 +110,7 @@ export class WorkerBroker {
             functionName,
             this.getWorker,
         );
-    }
+    };
 
     /**
      * Terminate all cached workers and clear the cache
@@ -109,5 +118,5 @@ export class WorkerBroker {
     terminate = () => {
         this.workers.forEach((worker) => worker.terminate());
         this.workers.clear();
-    }
+    };
 }

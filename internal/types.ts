@@ -20,3 +20,13 @@ export interface WorkerMsgResult<F extends Fn>
 export type WorkerMsg<F extends Fn> = WorkerMsgCall<F> | WorkerMsgResult<F>;
 
 export type WorkerSupplier = (moduleSpecifier: string) => Worker;
+
+export type WorkerProxy<M> = {
+    [P in keyof M]: M[P] extends Fn
+        ? (...args: Parameters<M[P]>) => Promise<ReturnType<M[P]>>
+        : never;
+};
+
+export interface Marshalled<T extends string = string> {
+    readonly __marshaller__: T;
+}

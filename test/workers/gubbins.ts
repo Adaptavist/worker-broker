@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { workerProxy } from '../../src/proxy.ts';
+import { workerProxy } from '../../worker/mod.ts';
 import type * as Other from './other.ts';
 
 const proxy = workerProxy(import.meta.url);
@@ -15,8 +15,8 @@ export async function hello(name: string) {
 }
 
 export async function* things() {
-    yield* manyThings();
-    yield* moreThings();
+    yield* await manyThings();
+    yield* await moreThings();
 }
 
 export function bad() {

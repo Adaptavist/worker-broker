@@ -1,5 +1,9 @@
-import { assertEquals, assertExists, assertRejects, assertThrows } from 'https://deno.land/std@0.118.0/testing/asserts.ts';
-import { WorkerBroker } from '../src/broker.ts';
+import {
+    assertEquals,
+    assertExists,
+    assertRejects,
+} from 'https://deno.land/std@0.118.0/testing/asserts.ts';
+import { WorkerBroker } from '../broker/mod.ts';
 import type * as Gubbins from './workers/gubbins.ts';
 import type * as Gateway from './workers/gateway.ts';
 
@@ -21,7 +25,9 @@ Deno.test('gateway', async () => {
     );
 
     const response = await gateway.sendMessage('Hello World');
-    assertExists(response.reply);
+    const body = await response.text();
+
+    assertExists(body);
 
     broker.terminate();
 });
@@ -33,12 +39,11 @@ Deno.test('error', async () => {
     );
 
     await assertRejects(async () => {
-        await gubbins.bad()
+        await gubbins.bad();
     });
 
     broker.terminate();
 });
-
 
 // Deno.test('iterables', async () => {
 //     const broker = new WorkerBroker()

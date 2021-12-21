@@ -1,5 +1,5 @@
-import { callWorkerFn } from './call.ts';
-import type { Fn, WorkerSupplier } from './types.ts';
+import { callWorkerFn } from './callWorkerFn.ts';
+import type { Fn, WorkerProxy, WorkerSupplier } from './types.ts';
 
 declare const self: Worker;
 
@@ -28,8 +28,11 @@ export const workerFnProxy = (sourceModule: string) =>
  * Create a proxy object of all functions of the module in the Worker
  * The worker is fetched only when required.
  */
- export const workerProxy = (sourceModule: string) =>
-    <M>(moduleSpecifier: URL | string, getWorker: WorkerSupplier = () => self): M =>
+export const workerProxy = (sourceModule: string) =>
+    <M>(
+        moduleSpecifier: URL | string,
+        getWorker: WorkerSupplier = () => self,
+    ): WorkerProxy<M> =>
         // deno-lint-ignore no-explicit-any
         new Proxy({} as any, {
             get: (target, functionName) => {
