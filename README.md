@@ -10,5 +10,5 @@ trust each other.
 
 ## Modules
 
-- src/broker - main broker modules, to be used by the core of the system, NOT by worker code.
-- src/worker - utilities for use by worker code.
+- broker/mod.ts - main broker, to be used by the core of the system, NOT by worker code.
+- worker/mod.ts - utilities for use by worker code.
