@@ -20,3 +20,11 @@ export function redirect() {
         },
     });
 }
+
+export function echo(params: any) {
+    return params
+}
+
+export function proxy({ url, method = 'GET' }: any = {}) {
+    return fetch(new URL(url), { method })
+}

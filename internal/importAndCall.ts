@@ -24,7 +24,9 @@ export const importAndCall = async <F extends Fn>(
             };
         }
     } catch (error: unknown) {
-        props = { error };
+        props = {
+            error: await marshall(error)
+        };
     }
 
     return {

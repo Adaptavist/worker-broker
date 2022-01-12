@@ -39,6 +39,11 @@ async function handleRequest(
     request: Request,
 ): Promise<Response> {
     const { targetModule, functionName, params } = requestToFnCall(request);
+
+    if (!targetModule || !functionName) {
+        return notFound();
+    }
+
     try {
         const result = await broker.workerFnProxy(targetModule, functionName)(
             params,
@@ -59,9 +64,7 @@ async function handleRequest(
         } else if (
             e instanceof Error && e.message.includes('Cannot load module')
         ) {
-            return new Response(null, {
-                status: 404,
-            });
+            return notFound();
         } else {
             return new Response(String(e), {
                 status: 500,
@@ -73,9 +76,11 @@ async function handleRequest(
     }
 }
 
+const notFound = () => new Response(null, { status: 404 });
+
 interface FnCall {
-    readonly targetModule: URL;
-    readonly functionName: string;
+    readonly targetModule?: URL;
+    readonly functionName?: string;
     readonly params: Record<string, string>;
 }
 
@@ -85,7 +90,7 @@ function requestToFnCall(request: Request): FnCall {
         !!s
     ).reverse();
     return {
-        targetModule: new URL(`./http/${moduleName}.ts`, import.meta.url),
+        targetModule: moduleName ? new URL(`./http/${moduleName}.ts`, import.meta.url) : undefined,
         functionName,
         params: urlParams(url.searchParams),
     };
@@ -93,7 +98,7 @@ function requestToFnCall(request: Request): FnCall {
 
 function urlParams(searchParams: URLSearchParams): Record<string, string> {
     const params: Record<string, string> = {};
-    searchParams.forEach(([value, key]) => {
+    searchParams.forEach((value, key) => {
         params[key] = value;
     });
     return params;
