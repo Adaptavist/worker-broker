@@ -1,105 +1,56 @@
-import { WorkerBroker } from '../broker/mod.ts';
+#!/usr/bin/env -S deno run --allow-net --allow-read --watch
 
-startServer({ hostname: 'localhost', port: 8080 });
+import { WorkerBroker } from "../broker/mod.ts";
+import init from "@http/host-deno-local/init";
+import { notFound } from "@http/response/not-found";
+import { byPattern } from "@http/route/by-pattern";
+import { plainError } from "@http/response/plain-error";
+import { setState } from "./state.ts";
 
-async function startServer(options: Deno.ListenOptions) {
-    const server = Deno.listen(options);
+const broker = new WorkerBroker();
 
-    console.debug(
-        'Server started:',
-        `http://${options.hostname}:${options.port}`,
+const handler = byPattern("/:moduleName/:functionName", async (_req, match) => {
+  const { moduleName, functionName } = match.pathname.groups;
+  const targetModule = new URL(`./http/${moduleName}.ts`, import.meta.url);
+  const params = urlParams(new URLSearchParams(match.search.input));
+
+  try {
+    const result = await broker.workerFnProxy(targetModule, functionName!)(
+      params,
     );
-
-    for await (const conn of server) {
-        handleConn(conn);
+    if (result instanceof Response) {
+      return result;
+    } else {
+      return Response.json(result);
     }
-}
-
-async function handleConn(conn: Deno.Conn) {
-    const httpConn = Deno.serveHttp(conn);
-    const broker = new WorkerBroker();
-
-    console.debug(`Connection open:`, httpConn.rid);
-
-    for await (const requestEvent of httpConn) {
-        console.debug(`Request:`, requestEvent.request.url);
-
-        const response = await handleRequest(broker, requestEvent.request);
-
-        console.debug(`Response:`, response);
-
-        await requestEvent.respondWith(response);
+  } catch (e: unknown) {
+    if (e instanceof Response) {
+      return e;
+    } else if (
+      e instanceof Error && e.message.includes("Cannot load module")
+    ) {
+      return notFound();
+    } else {
+      return plainError(
+        500,
+        "Internal Server Error",
+        e instanceof Error ? e.message : undefined,
+      );
     }
-
-    console.debug(`Connection closed:`, httpConn.rid);
-}
-
-async function handleRequest(
-    broker: WorkerBroker,
-    request: Request,
-): Promise<Response> {
-    const { targetModule, functionName, params } = requestToFnCall(request);
-
-    if (!targetModule || !functionName) {
-        return notFound();
-    }
-
-    try {
-        const result = await broker.workerFnProxy(targetModule, functionName)(
-            params,
-        );
-        if (result instanceof Response) {
-            return result;
-        } else {
-            return new Response(JSON.stringify(result), {
-                status: 200,
-                headers: {
-                    'content-type': 'application/json',
-                },
-            });
-        }
-    } catch (e: unknown) {
-        if (e instanceof Response) {
-            return e;
-        } else if (
-            e instanceof Error && e.message.includes('Cannot load module')
-        ) {
-            return notFound();
-        } else {
-            return new Response(String(e), {
-                status: 500,
-                headers: {
-                    'content-type': 'text/plain',
-                },
-            });
-        }
-    }
-}
-
-const notFound = () => new Response(null, { status: 404 });
-
-interface FnCall {
-    readonly targetModule?: URL;
-    readonly functionName?: string;
-    readonly params: Record<string, string>;
-}
-
-function requestToFnCall(request: Request): FnCall {
-    const url = new URL(request.url);
-    const [functionName, moduleName] = url.pathname.split('/').filter((s) =>
-        !!s
-    ).reverse();
-    return {
-        targetModule: moduleName ? new URL(`./http/${moduleName}.ts`, import.meta.url) : undefined,
-        functionName,
-        params: urlParams(url.searchParams),
-    };
-}
+  }
+});
 
 function urlParams(searchParams: URLSearchParams): Record<string, string> {
-    const params: Record<string, string> = {};
-    searchParams.forEach((value, key) => {
-        params[key] = value;
-    });
-    return params;
+  const params: Record<string, string> = {};
+  searchParams.forEach((value, key) => {
+    params[key] = value;
+  });
+  return params;
 }
+
+// deno-lint-ignore no-explicit-any
+(globalThis as any).FOO = "foo";
+
+setState("main");
+
+await Deno.serve(await init(handler)).finished;

@@ -1,10 +1,19 @@
 {
-    "fmt": {
-        "options": {
-            "lineWidth": 80,
-            "indentWidth": 4,
-            "singleQuote": true,
-            "proseWrap": "preserve"
-        }
-    }
+  "name": "@jollytoad/worker-broker",
+  "version": "0.1.0",
+  "exports": {
+    "./broker": "./broker/mod.ts",
+    "./worker": "./worker/mod.ts"
+  },
+  "tasks": {
+    "start": "./test/server.ts",
+    "test": "deno test --allow-read --allow-net",
+    "check": "deno check **/*.ts",
+    "ok": "deno fmt && deno lint && deno task check && deno task test && deno publish --dry-run --allow-dirty"
+  },
+  "imports": {
+    "@http/host-deno-local": "jsr:@http/host-deno-local@^0.25.0",
+    "@http/response": "jsr:@http/response@^0.25.0",
+    "@http/route": "jsr:@http/route@^0.25.0"
+  }
 }

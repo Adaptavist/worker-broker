@@ -1,0 +1,97 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@http/fs@0.25": "0.25.0",
+    "jsr:@http/host-deno-local@0.25": "0.25.0",
+    "jsr:@http/interceptor@0.25": "0.25.0",
+    "jsr:@http/response@0.25": "0.25.0",
+    "jsr:@http/route@0.25": "0.25.0",
+    "jsr:@std/collections@^1.0.9": "1.0.9",
+    "jsr:@std/encoding@^1.0.5": "1.0.6",
+    "jsr:@std/http@^1.0.12": "1.0.12",
+    "jsr:@std/media-types@^1.1.0": "1.1.0",
+    "jsr:@std/net@^1.0.4": "1.0.4",
+    "jsr:@std/path@^1.0.8": "1.0.8",
+    "jsr:@std/streams@^1.0.8": "1.0.8"
+  },
+  "jsr": {
+    "@http/fs@0.25.0": {
+      "integrity": "717b1095c17bcbd0080a94b9de0b05d346ff2d1871f924e4df0944479d14990e",
+      "dependencies": [
+        "jsr:@http/response",
+        "jsr:@std/http",
+        "jsr:@std/media-types",
+        "jsr:@std/path",
+        "jsr:@std/streams"
+      ]
+    },
+    "@http/host-deno-local@0.25.0": {
+      "integrity": "0405259e10d8383bf39cbb7f93c4cb9db0e1e1b0dda5eaef233ce4308c4ce835",
+      "dependencies": [
+        "jsr:@http/interceptor",
+        "jsr:@http/route",
+        "jsr:@std/net"
+      ]
+    },
+    "@http/interceptor@0.25.0": {
+      "integrity": "a53ce9fd8dda6126eb9b41b06e20a491b58903b9668a4864a8330bb4d6127500",
+      "dependencies": [
+        "jsr:@http/response",
+        "jsr:@http/route"
+      ]
+    },
+    "@http/response@0.25.0": {
+      "integrity": "936b339aecf9a79c265754479f29da3524d1b01ac7133788bbf486d23ef52edc",
+      "dependencies": [
+        "jsr:@std/http"
+      ]
+    },
+    "@http/route@0.25.0": {
+      "integrity": "e193c389fb0f9db07eda3d1b7034f7daf4e473f21b7912a7021bd539349ea8fb",
+      "dependencies": [
+        "jsr:@http/fs",
+        "jsr:@http/response",
+        "jsr:@std/collections",
+        "jsr:@std/http",
+        "jsr:@std/media-types",
+        "jsr:@std/path"
+      ]
+    },
+    "@std/collections@1.0.9": {
+      "integrity": "4f58104ead08a04a2199374247f07befe50ba01d9cca8cbb23ab9a0419921e71"
+    },
+    "@std/encoding@1.0.6": {
+      "integrity": "ca87122c196e8831737d9547acf001766618e78cd8c33920776c7f5885546069"
+    },
+    "@std/http@1.0.12": {
+      "integrity": "85246d8bfe9c8e2538518725b158bdc31f616e0869255f4a8d9e3de919cab2aa",
+      "dependencies": [
+        "jsr:@std/encoding"
+      ]
+    },
+    "@std/media-types@1.1.0": {
+      "integrity": "c9d093f0c05c3512932b330e3cc1fe1d627b301db33a4c2c2185c02471d6eaa4"
+    },
+    "@std/net@1.0.4": {
+      "integrity": "2f403b455ebbccf83d8a027d29c5a9e3a2452fea39bb2da7f2c04af09c8bc852"
+    },
+    "@std/path@1.0.8": {
+      "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
+    },
+    "@std/streams@1.0.8": {
+      "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
+    }
+  },
+  "remote": {
+    "https://deno.land/std@0.118.0/fmt/colors.ts": "8368ddf2d48dfe413ffd04cdbb7ae6a1009cf0dccc9c7ff1d76259d9c61a0621",
+    "https://deno.land/std@0.118.0/testing/_diff.ts": "e6a10d2aca8d6c27a9c5b8a2dbbf64353874730af539707b5b39d4128140642d",
+    "https://deno.land/std@0.118.0/testing/asserts.ts": "e8bd3ff280731e2d2b48c67d6ed97ce2c0b717601ccb38816aff89edce71680d"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@http/host-deno-local@0.25",
+      "jsr:@http/response@0.25",
+      "jsr:@http/route@0.25"
+    ]
+  }
+}
