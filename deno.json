@@ -1,6 +1,7 @@
 {
   "name": "@jollytoad/worker-broker",
   "version": "0.1.0",
+  "license": "MIT",
   "exports": {
     "./broker": "./broker/mod.ts",
     "./worker": "./worker/mod.ts"
