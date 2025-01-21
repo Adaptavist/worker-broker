@@ -9,7 +9,9 @@
     "start": "./test/server.ts",
     "test": "deno test --allow-read --allow-net",
     "check": "deno check **/*.ts",
-    "ok": "deno fmt && deno lint && deno task check && deno task test && deno publish --dry-run --allow-dirty"
+    "lint": "deno lint && deno doc --lint broker/*.ts worker/*.ts",
+    "ok": "deno fmt && deno task lint && deno task check && deno task test && deno publish --dry-run --allow-dirty",
+    "lock": "rm deno.lock && deno install && deno task check && deno task test"
   },
   "imports": {
     "@http/host-deno-local": "jsr:@http/host-deno-local@^0.25.0",

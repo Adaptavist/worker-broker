@@ -34,11 +34,7 @@
       ]
     },
     "@http/interceptor@0.25.0": {
-      "integrity": "a53ce9fd8dda6126eb9b41b06e20a491b58903b9668a4864a8330bb4d6127500",
-      "dependencies": [
-        "jsr:@http/response",
-        "jsr:@http/route"
-      ]
+      "integrity": "a53ce9fd8dda6126eb9b41b06e20a491b58903b9668a4864a8330bb4d6127500"
     },
     "@http/response@0.25.0": {
       "integrity": "936b339aecf9a79c265754479f29da3524d1b01ac7133788bbf486d23ef52edc",

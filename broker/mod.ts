@@ -11,6 +11,9 @@ import { marshal } from "../internal/marshal.ts";
 
 const workerURL = new URL("../internal/worker.ts", import.meta.url);
 
+/**
+ * Manage a pool of Workers, and communication between the Workers and the main thread.
+ */
 export class WorkerBroker {
   /**
    * Cache of workers
