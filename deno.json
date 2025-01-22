@@ -1,10 +1,11 @@
 {
   "name": "@jollytoad/worker-broker",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "exports": {
     "./broker": "./broker/mod.ts",
-    "./worker": "./worker/mod.ts"
+    "./worker": "./worker/mod.ts",
+    "./debug": "./internal/debug.ts"
   },
   "unstable": ["worker-options"],
   "tasks": {

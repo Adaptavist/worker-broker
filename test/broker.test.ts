@@ -6,9 +6,12 @@ import {
   assertStrictEquals,
 } from "@std/assert";
 import { WorkerBroker } from "../broker/mod.ts";
+import { enableDebugging } from "../internal/debug.ts";
 import type * as Gubbins from "./workers/gubbins.ts";
 import type * as Gateway from "./workers/gateway.ts";
 import type * as Stateful from "./workers/stateful.ts";
+
+enableDebugging(true);
 
 Deno.test("a pair of workers", async () => {
   const broker = new WorkerBroker();

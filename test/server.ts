@@ -1,6 +1,7 @@
 #!/usr/bin/env -S deno run --allow-net --allow-read --watch
 
 import { WorkerBroker } from "../broker/mod.ts";
+import { enableDebugging } from "../internal/debug.ts";
 import init from "@http/host-deno-local/init";
 import { notFound } from "@http/response/not-found";
 import { cascade } from "@http/route/cascade";
@@ -8,6 +9,8 @@ import { byPattern } from "@http/route/by-pattern";
 import { plainError } from "@http/response/plain-error";
 import { ok } from "@http/response/ok";
 import { setState } from "./state.ts";
+
+enableDebugging(true);
 
 const broker = new WorkerBroker();
 
