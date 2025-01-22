@@ -1,54 +1,103 @@
-import { callWorkerFn } from "../internal/callWorkerFn.ts";
-import { debug } from "../internal/debug.ts";
-import { workerFnProxy, workerProxy } from "../internal/proxy.ts";
+import { workerFnProxy, workerImport, workerProxy } from "../internal/proxy.ts";
+import { handleMessage } from "../internal/handleMessage.ts";
 import type {
   Fn,
-  WorkerMsgCall,
-  WorkerMsgResult,
+  WorkerBrokerOptions,
   WorkerProxy,
 } from "../internal/types.ts";
-import { marshal } from "../internal/marshal.ts";
 
-const workerURL = new URL("../internal/worker.ts", import.meta.url);
+/**
+ * Default module for each new Worker.
+ */
+export const defaultWorkerModule: URL = new URL(
+  "../internal/worker.ts",
+  import.meta.url,
+);
+
+/**
+ * Default Worker constructor function.
+ */
+export const defaultWorkerConstructor = (
+  _moduleSpecifier: URL,
+  _segregationId?: string,
+): Worker => new Worker(defaultWorkerModule, { type: "module" });
 
 /**
  * Manage a pool of Workers, and communication between the Workers and the main thread.
  */
 export class WorkerBroker {
   /**
+   * Create a WorkerBroker
+   */
+  constructor(options: WorkerBrokerOptions = {}) {
+    if (options.workerConstructor) {
+      this.#workerConstructor = options.workerConstructor;
+    }
+  }
+
+  #workerConstructor = defaultWorkerConstructor;
+
+  /**
    * Cache of workers
    */
   #workers = new Map<string, Worker>();
 
   /**
+   * Map of the last cache busting value used for a module URL.
+   * These are set as the hash of the module URL when importing the module.
+   */
+  #cacheBusters = new Map<string, string>();
+
+  /**
    * Get a new or existing worker for the given module.
-   * The worker will be cached and reused if the same module is requested again.
+   * The worker will be cached and reused if the same module is requested again, unless a segregationId
+   * is given, in which a new Worker per module per segregation id is created.
+   * The URL hash will be stripped from the module specifier.
    *
    * @param moduleSpecifier must be an absolute URL for the module
+   * @param segregationId an optional unique id to segregate a Worker from other Workers of the same module
    * @return a new or existing Worker for the module
    */
-  getWorker = (moduleSpecifier: string): Worker => {
-    let worker = this.#workers.get(moduleSpecifier);
+  getWorker = (moduleSpecifier: URL, segregationId?: string): Worker => {
+    return this.#workers.get(this.#workerKey(moduleSpecifier, segregationId)) ??
+      this.#createWorker(moduleSpecifier, segregationId);
+  };
 
-    if (!worker) {
-      worker = this.createWorker(moduleSpecifier);
-      this.#workers.set(moduleSpecifier, worker);
+  /**
+   * Remove a Worker from the pool, and stop listening for messages.
+   * This does not terminate the Worker.
+   *
+   * @param moduleSpecifier must be an absolute URL for the module
+   * @param segregationId an optional unique id to segregate a Worker from other Workers of the same module
+   * @return the removed Worker if it existed
+   */
+  removeWorker = (
+    moduleSpecifier: URL,
+    segregationId?: string,
+  ): Worker | undefined => {
+    const key = this.#workerKey(moduleSpecifier, segregationId);
+    const worker = this.#workers.get(key);
+
+    if (worker) {
+      worker.removeEventListener("message", this.#handleMessage);
+      this.#workers.delete(key);
     }
 
     return worker;
   };
 
   /**
-   * Create a new worker for the given module.
-   * This is used by getWorker.
+   * Create a new worker for the given module, register a message handler and add it to the pool.
    *
    * @param moduleSpecifier must be an absolute URL for the module
+   * @param segregationId an optional unique id to segregate a Worker from other Workers of the same module
    * @returns always a new Worker instance
    */
-  createWorker = (moduleSpecifier: string): Worker => {
-    const worker = new Worker(workerURL, { type: "module" });
+  #createWorker = (moduleSpecifier: URL, segregationId?: string): Worker => {
+    const moduleUrl = stripHash(moduleSpecifier);
+    const worker = this.#workerConstructor(moduleUrl, segregationId);
 
-    this.#workers.set(moduleSpecifier, worker);
+    this.#workers.set(this.#workerKey(moduleSpecifier, segregationId), worker);
 
     worker.addEventListener("message", this.#handleMessage);
 
@@ -56,47 +105,29 @@ export class WorkerBroker {
   };
 
   /**
+   * Create a key for use with this.#workers map.
+   * It will remove the hash (which may be set for cache busting purposes),
+   * and append a segregationId if specified.
+   */
+  #workerKey = (moduleSpecifier: URL, segregationId?: string): string => {
+    const moduleUrl = stripHash(moduleSpecifier);
+    return moduleUrl + (segregationId ? ` @${segregationId}` : "");
+  };
+
+  /**
    * Common handler for all incoming messages from workers
    */
-  #handleMessage = async (
-    { data }: MessageEvent<WorkerMsgCall<Fn>>,
-  ) => {
-    if (data.kind === "call" && data.sourceModule) {
-      debug("container received call:", data);
-
-      let props: Pick<WorkerMsgResult<Fn>, "result" | "error"> = {};
-      try {
-        // Call fn in target module
-        props = {
-          result: await marshal(
-            await callWorkerFn(
-              data,
-              this.getWorker,
-            ),
-          ),
-        };
-      } catch (error: unknown) {
-        props = { error };
-      }
-
-      const msg: WorkerMsgResult<Fn> = {
-        ...data,
-        kind: "result",
-        ...props,
-      };
-
-      debug("container forwarding result:", msg);
-
-      this.getWorker(data.sourceModule).postMessage(msg);
-    }
-  };
+  #handleMessage = handleMessage(this.getWorker);
 
   /**
    * Create a proxy object of all functions of the module in the Worker
    */
-  workerProxy = <M>(targetModule: URL): WorkerProxy<M> => {
-    return workerProxy(undefined!)(
-      targetModule,
+  workerProxy = <M>(
+    targetModule: URL,
+    segregationId?: string,
+  ): WorkerProxy<M> => {
+    return workerProxy(undefined!, segregationId)(
+      this.#cacheBustedUrl(targetModule),
       this.getWorker,
     );
   };
@@ -107,19 +138,56 @@ export class WorkerBroker {
   workerFnProxy = <F extends Fn>(
     targetModule: URL,
     functionName: string,
+    segregationId?: string,
   ): (...args: Parameters<F>) => Promise<ReturnType<F>> => {
-    return workerFnProxy(undefined!)(
-      targetModule,
+    return workerFnProxy(undefined!, segregationId)(
+      this.#cacheBustedUrl(targetModule),
       functionName,
       this.getWorker,
     );
   };
 
   /**
+   * Force a Worker to import a module without performing
+   * a function call.
+   */
+  workerImport = (
+    targetModule: URL,
+    segregationId?: string,
+    cacheBuster?: string | number,
+  ): Promise<unknown> => {
+    if (cacheBuster) {
+      this.#cacheBusters.set(stripHash(targetModule).href, String(cacheBuster));
+    }
+    return workerImport(undefined!, segregationId)(
+      this.#cacheBustedUrl(targetModule),
+      this.getWorker,
+    );
+  };
+
+  #cacheBustedUrl = (targetModule: URL): URL => {
+    const moduleUrl = stripHash(targetModule);
+    const cacheBuster = this.#cacheBusters.get(moduleUrl.href);
+    if (cacheBuster) {
+      moduleUrl.hash = cacheBuster;
+    }
+    return moduleUrl;
+  };
+
+  /**
    * Terminate all cached workers and clear the cache
    */
   terminate = (): void => {
-    this.#workers.forEach((worker) => worker.terminate());
+    this.#workers.forEach((worker) => {
+      worker.removeEventListener("message", this.#handleMessage);
+      worker.terminate();
+    });
     this.#workers.clear();
   };
+}
+
+function stripHash(url: URL): URL {
+  url = new URL(url);
+  url.hash = "";
+  return url;
 }

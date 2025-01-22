@@ -18,7 +18,7 @@ export const callWorkerFn = <F extends Fn>(
   getWorker: WorkerSupplier = () => self,
 ): Promise<ReturnType<F>> =>
   new Promise((resolve, reject) => {
-    const worker = getWorker(msg.targetModule);
+    const worker = getWorker(new URL(msg.targetModule), msg.segregationId);
 
     const proxyType = worker === self ? "worker" : "container";
 
@@ -43,7 +43,7 @@ export const callWorkerFn = <F extends Fn>(
     (async function () {
       const marshalledMsg = {
         ...msg,
-        args: await marshalArgs(msg.args),
+        args: msg.args?.length ? await marshalArgs(msg.args) : [],
       };
 
       debug(`${proxyType} proxy sending call:`, marshalledMsg);

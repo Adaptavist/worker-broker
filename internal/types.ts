@@ -1,4 +1,15 @@
 /**
+ * Options for the WorkerBroker constructor.
+ */
+export interface WorkerBrokerOptions {
+  /**
+   * A custom Worker construction function, if you want to
+   * supply an alternative Worker module, or custom options.
+   */
+  workerConstructor?: WorkerSupplier;
+}
+
+/**
  * A generic function.
  */
 // deno-lint-ignore no-explicit-any
@@ -21,17 +32,27 @@ export interface WorkerMsgCall<F extends Fn> {
    */
   readonly targetModule: string;
   /**
+   * An identifier to segregate Workers even for the same
+   * module. This may be a user id for example.
+   */
+  readonly segregationId?: string;
+  /**
+   * A value added as the hash of an import URL of a module,
+   * as a way to force a re-import of the module.
+   */
+  readonly cacheBuster?: string;
+  /**
    * The module from which the call originates
    */
   readonly sourceModule?: string;
   /**
    * The name of the function to call within the module
    */
-  readonly functionName: string;
+  readonly functionName?: string;
   /**
    * The arguments of the function call
    */
-  readonly args: Parameters<F>;
+  readonly args?: Parameters<F>;
 }
 
 /**
@@ -61,7 +82,10 @@ export type WorkerMsg<F extends Fn> = WorkerMsgCall<F> | WorkerMsgResult<F>;
 /**
  * A function that supplies a Worker for the given module.
  */
-export type WorkerSupplier = (moduleSpecifier: string) => Worker;
+export type WorkerSupplier = (
+  moduleSpecifier: URL,
+  segregationId?: string,
+) => Worker;
 
 /**
  * A proxy object of all functions of a module in a Worker.
