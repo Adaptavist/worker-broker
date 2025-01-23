@@ -6,10 +6,14 @@ const classes: Record<string, any> = {
   "Request": Request,
 };
 
+/**
+ * Convert an object into a serializable/transferable object,
+ * so it can be passed between Workers.
+ */
 export const marshal = async (val: unknown): Promise<unknown> => {
   for (const marshaller in classes) {
     if (val instanceof classes[marshaller]) {
-      return (await import(`./marshaller/${marshaller}.ts`)).marshall(
+      return (await import(`./marshaller/${marshaller}.ts`)).marshal(
         val,
       );
     }
@@ -17,18 +21,27 @@ export const marshal = async (val: unknown): Promise<unknown> => {
   return val;
 };
 
+/**
+ * Restore a object that was previously marshalled.
+ */
 export const unmarshal = async <T = unknown>(val: unknown): Promise<T> => {
   if (isMarshalled(val)) {
     return await (await import(`./marshaller/${val.__marshaller__}.ts`))
-      .unmarshall(val);
+      .unmarshal(val);
   }
   return val as T;
 };
 
+/**
+ * Marshal the arguments for a function.
+ */
 export const marshalArgs = <F extends Fn>(
   args: Parameters<F>,
 ): Promise<unknown[]> => Promise.all(args.map(marshal));
 
+/**
+ * Unmarshal the arguments for a function.
+ */
 export const unmarshalArgs = <F extends Fn>(
   args: unknown[],
 ): Promise<Parameters<F>> =>

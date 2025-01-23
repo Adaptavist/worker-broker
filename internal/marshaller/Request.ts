@@ -15,7 +15,10 @@ interface MarshalledRequest extends Marshalled<"Request"> {
   readonly body: ArrayBuffer;
 }
 
-export const marshall = async (r: Request): Promise<MarshalledRequest> => ({
+/**
+ * Marshal a Request object so it can be passed between Workers.
+ */
+export const marshal = async (r: Request): Promise<MarshalledRequest> => ({
   __marshaller__: "Request",
   url: r.url,
   method: r.method,
@@ -31,6 +34,9 @@ export const marshall = async (r: Request): Promise<MarshalledRequest> => ({
   body: await r.arrayBuffer(),
 });
 
-export const unmarshall = (
+/**
+ * Unmarshal a marshalled Request object.
+ */
+export const unmarshal = (
   { __marshaller__, url, ...init }: MarshalledRequest,
 ): Request => new Request(url, init);

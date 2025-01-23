@@ -3,7 +3,10 @@ import { handleMessage } from "../internal/handleMessage.ts";
 import type {
   Fn,
   WorkerBrokerOptions,
+  WorkerCleaner,
+  WorkerEvent,
   WorkerProxy,
+  WorkerSupplier,
 } from "../internal/types.ts";
 
 /**
@@ -33,9 +36,14 @@ export class WorkerBroker {
     if (options.workerConstructor) {
       this.#workerConstructor = options.workerConstructor;
     }
+    if (options.workerCleaner) {
+      this.#workerCleaner = options.workerCleaner;
+    }
   }
 
-  #workerConstructor = defaultWorkerConstructor;
+  #workerConstructor: WorkerSupplier = defaultWorkerConstructor;
+
+  #workerCleaner: WorkerCleaner | undefined;
 
   /**
    * Cache of workers
@@ -59,8 +67,22 @@ export class WorkerBroker {
    * @return a new or existing Worker for the module
    */
   getWorker = (moduleSpecifier: URL, segregationId?: string): Worker => {
-    return this.#workers.get(this.#workerKey(moduleSpecifier, segregationId)) ??
-      this.#createWorker(moduleSpecifier, segregationId);
+    const key = this.#workerKey(moduleSpecifier, segregationId);
+    let type: WorkerEvent["type"] = "get";
+    let worker = this.#workers.get(key);
+    if (!worker) {
+      type = "create";
+      worker = this.#createWorker(moduleSpecifier, segregationId);
+    }
+    this.#workerCleaner?.({
+      type,
+      worker,
+      key,
+      moduleSpecifier,
+      segregationId,
+      broker: this,
+    });
+    return worker;
   };
 
   /**
@@ -81,6 +103,14 @@ export class WorkerBroker {
     if (worker) {
       worker.removeEventListener("message", this.#handleMessage);
       this.#workers.delete(key);
+      this.#workerCleaner?.({
+        type: "remove",
+        worker,
+        key,
+        moduleSpecifier,
+        segregationId,
+        broker: this,
+      });
     }
 
     return worker;
@@ -183,6 +213,7 @@ export class WorkerBroker {
       worker.terminate();
     });
     this.#workers.clear();
+    this.#workerCleaner?.({ type: "terminate", broker: this });
   };
 }
 

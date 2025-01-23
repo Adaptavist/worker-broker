@@ -7,7 +7,10 @@ interface MarshalledResponse extends Marshalled<"Response"> {
   readonly body: ArrayBuffer;
 }
 
-export const marshall = async (r: Response): Promise<MarshalledResponse> => ({
+/**
+ * Marshal a Response object so it can be passed between Workers.
+ */
+export const marshal = async (r: Response): Promise<MarshalledResponse> => ({
   __marshaller__: "Response",
   status: r.status,
   statusText: r.statusText,
@@ -15,6 +18,9 @@ export const marshall = async (r: Response): Promise<MarshalledResponse> => ({
   body: await r.arrayBuffer(),
 });
 
-export const unmarshall = (
+/**
+ * Unmarshal a marshalled Request object.
+ */
+export const unmarshal = (
   { __marshaller__, body, ...init }: MarshalledResponse,
 ): Response => new Response(body, init);
