@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { workerProxy } from "../../worker/mod.ts";
+import { workerProxy } from "@jollytoad/worker-broker/worker";
 import type * as Storage from "./storage.ts";
 
 const proxy = workerProxy(import.meta.url);

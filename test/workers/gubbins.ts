@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true" />
 /// <reference lib="deno.worker" />
 
-import { workerProxy } from "../../worker/mod.ts";
+import { workerProxy } from "@jollytoad/worker-broker/worker";
 import type * as Other from "./other.ts";
 
 const proxy = workerProxy(import.meta.url);
@@ -21,4 +21,7 @@ export async function* things() {
 
 export function bad() {
   throw new Error("FAIL");
+}
+
+export function nothing() {
 }

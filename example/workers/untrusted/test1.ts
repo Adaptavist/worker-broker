@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
-import { getState, setState } from "../state.ts";
+import { getState, setState } from "../../lib/state.ts";
 
 setState("test1");
 

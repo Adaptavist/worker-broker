@@ -5,8 +5,8 @@ import {
   assertRejects,
   assertStrictEquals,
 } from "@std/assert";
-import { WorkerBroker } from "../broker/mod.ts";
-import { enableDebugging } from "../internal/debug.ts";
+import { WorkerBroker } from "@jollytoad/worker-broker/broker";
+import { enableDebugging } from "@jollytoad/worker-broker/debug";
 import type * as Gubbins from "./workers/gubbins.ts";
 import type * as Gateway from "./workers/gateway.ts";
 import type * as Stateful from "./workers/stateful.ts";
@@ -47,6 +47,17 @@ Deno.test("error", async () => {
   await assertRejects(async () => {
     await gubbins.bad();
   });
+
+  broker.terminate();
+});
+
+Deno.test("undefined result", async () => {
+  const broker = new WorkerBroker();
+  const gubbins = broker.workerProxy<typeof Gubbins>(
+    new URL("./workers/gubbins.ts", import.meta.url),
+  );
+
+  assertStrictEquals(await gubbins.nothing(), undefined);
 
   broker.terminate();
 });

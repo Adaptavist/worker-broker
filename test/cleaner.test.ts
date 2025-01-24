@@ -1,7 +1,7 @@
 import { assertNotStrictEquals, assertStrictEquals } from "@std/assert";
-import { WorkerBroker } from "../broker/mod.ts";
-import { enableDebugging } from "../internal/debug.ts";
-import { cleaner } from "../broker/cleaner.ts";
+import { WorkerBroker } from "@jollytoad/worker-broker/broker";
+import { enableDebugging } from "@jollytoad/worker-broker/debug";
+import { cleaner } from "@jollytoad/worker-broker/cleaner";
 
 enableDebugging(true);
 

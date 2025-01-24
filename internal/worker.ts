@@ -9,6 +9,4 @@ import { onmessage } from "./onmessage.ts";
  * It simply waits for function call messages, and will dynamically
  * import the target module when the first fn call msg is received.
  */
-self.onmessage = onmessage;
-
-Object.defineProperty(self, "onmessage", { writable: false });
+self.onmessage = onmessage();

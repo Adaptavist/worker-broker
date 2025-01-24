@@ -1,9 +1,9 @@
-import { WorkerBroker } from "../broker/mod.ts";
+import { WorkerBroker } from "@jollytoad/worker-broker/broker";
+import { cleaner } from "@jollytoad/worker-broker/cleaner";
+import { enableDebugging } from "@jollytoad/worker-broker/debug";
 import { format as formatBytes } from "@std/fmt/bytes";
 import { format as formatTime } from "@std/fmt/duration";
 import { delay } from "@std/async/delay";
-import { cleaner } from "../broker/cleaner.ts";
-import { enableDebugging } from "../internal/debug.ts";
 
 enableDebugging(true);
 

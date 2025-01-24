@@ -14,7 +14,7 @@ export const workerFnProxy =
     functionName: string,
     getWorker: WorkerSupplier = () => self,
   ) =>
-  (...args: Parameters<F>): Promise<ReturnType<F>> =>
+  (...args: Parameters<F>): Promise<Awaited<ReturnType<F>>> =>
     callWorkerFn<F>({
       kind: "call",
       id: crypto.randomUUID(),

@@ -1,6 +1,6 @@
 {
   "name": "@jollytoad/worker-broker",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "license": "MIT",
   "exports": {
     "./broker": "./broker/mod.ts",
@@ -12,7 +12,7 @@
   },
   "unstable": ["worker-options"],
   "tasks": {
-    "start": "./test/server.ts",
+    "start": "./example/app/main.ts",
     "test": "deno test --allow-read --allow-net",
     "check": "deno check **/*.ts",
     "lint": "deno lint && deno doc --lint broker/*.ts worker/*.ts internal/**/*.ts",

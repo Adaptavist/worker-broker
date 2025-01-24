@@ -16,7 +16,7 @@ declare const self: Worker;
 export const callWorkerFn = <F extends Fn>(
   msg: WorkerMsgCall<F>,
   getWorker: WorkerSupplier = () => self,
-): Promise<ReturnType<F>> =>
+): Promise<Awaited<ReturnType<F>>> =>
   new Promise((resolve, reject) => {
     const worker = getWorker(new URL(msg.targetModule), msg.segregationId);
 
@@ -50,7 +50,7 @@ export const callWorkerFn = <F extends Fn>(
 
       worker.postMessage(
         marshalledMsg,
-        findTransferables(...marshalledMsg.args),
+        await findTransferables(...marshalledMsg.args),
       );
     })();
   });

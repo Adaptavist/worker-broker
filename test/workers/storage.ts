@@ -1,4 +1,4 @@
-import type { WorkerMsgCall } from "../../worker/mod.ts";
+import type { WorkerMsgCall } from "@jollytoad/worker-broker/worker";
 
 // deno-lint-ignore no-explicit-any
 const stores = new Map<string, Map<string, any>>();

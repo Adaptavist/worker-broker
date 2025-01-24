@@ -1,10 +1,11 @@
+import { hasTransferableStreams } from "../transfer.ts";
 import type { Marshalled } from "../types.ts";
 
 interface MarshalledResponse extends Marshalled<"Response"> {
   readonly status: number;
   readonly statusText: string;
   readonly headers: [string, string][];
-  readonly body: ArrayBuffer;
+  readonly body: ArrayBuffer | ReadableStream<Uint8Array> | null;
 }
 
 /**
@@ -15,7 +16,9 @@ export const marshal = async (r: Response): Promise<MarshalledResponse> => ({
   status: r.status,
   statusText: r.statusText,
   headers: [...r.headers.entries()],
-  body: await r.arrayBuffer(),
+  body: !r.body || await hasTransferableStreams()
+    ? r.body
+    : await r.arrayBuffer(),
 });
 
 /**

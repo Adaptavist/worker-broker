@@ -9,6 +9,12 @@ import type {
   WorkerSupplier,
 } from "../internal/types.ts";
 
+export type {
+  WorkerBrokerOptions,
+  WorkerCleaner,
+  WorkerSupplier,
+} from "../internal/types.ts";
+
 /**
  * Default module for each new Worker.
  */
@@ -169,7 +175,7 @@ export class WorkerBroker {
     targetModule: URL,
     functionName: string,
     segregationId?: string,
-  ): (...args: Parameters<F>) => Promise<ReturnType<F>> => {
+  ): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> => {
     return workerFnProxy(undefined!, segregationId)(
       this.#cacheBustedUrl(targetModule),
       functionName,

@@ -1,3 +1,4 @@
+import { hasTransferableStreams } from "../transfer.ts";
 import type { Marshalled } from "../types.ts";
 
 interface MarshalledRequest extends Marshalled<"Request"> {
@@ -12,7 +13,7 @@ interface MarshalledRequest extends Marshalled<"Request"> {
   readonly redirect?: RequestRedirect;
   readonly referrer?: string;
   readonly referrerPolicy?: ReferrerPolicy;
-  readonly body: ArrayBuffer;
+  readonly body: ArrayBuffer | ReadableStream<Uint8Array> | null;
 }
 
 /**
@@ -31,7 +32,9 @@ export const marshal = async (r: Request): Promise<MarshalledRequest> => ({
   redirect: r.redirect,
   referrer: r.referrer,
   referrerPolicy: r.referrerPolicy,
-  body: await r.arrayBuffer(),
+  body: !r.body || await hasTransferableStreams()
+    ? r.body
+    : await r.arrayBuffer(),
 });
 
 /**

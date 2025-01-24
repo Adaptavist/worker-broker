@@ -27,7 +27,7 @@ export type Fn = (...args: any[]) => any;
 /**
  * The representation of a function call to a Worker.
  */
-export interface WorkerMsgCall<F extends Fn> {
+export interface WorkerMsgCall<F extends Fn = Fn> {
   /**
    * Indicate a function call
    */
@@ -67,7 +67,7 @@ export interface WorkerMsgCall<F extends Fn> {
 /**
  * The representation of the result from a Worker function.
  */
-export interface WorkerMsgResult<F extends Fn>
+export interface WorkerMsgResult<F extends Fn = Fn>
   extends Omit<WorkerMsgCall<F>, "kind"> {
   /**
    * Indicate a result of a function call
@@ -86,7 +86,9 @@ export interface WorkerMsgResult<F extends Fn>
 /**
  * A message to/from a Worker.
  */
-export type WorkerMsg<F extends Fn> = WorkerMsgCall<F> | WorkerMsgResult<F>;
+export type WorkerMsg<F extends Fn = Fn> =
+  | WorkerMsgCall<F>
+  | WorkerMsgResult<F>;
 
 /**
  * A function that supplies a Worker for the given module.
@@ -156,7 +158,7 @@ export interface WorkerBrokerEvent {
  */
 export type WorkerProxy<M> = {
   [P in keyof M]: M[P] extends Fn
-    ? (...args: Parameters<M[P]>) => Promise<ReturnType<M[P]>>
+    ? (...args: Parameters<M[P]>) => Promise<Awaited<ReturnType<M[P]>>>
     : never;
 };
 
