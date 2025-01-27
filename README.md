@@ -57,23 +57,28 @@ const result = await proxiedHello("World");
 
 #### What just happened?
 
-The call to `broker.workerFnProxy()` created a new Worker dedicated to the
-`./hello.ts` module, and returned a function `proxiedHello` that appears to
+The call to `broker.workerFnProxy()` created a proxy function that appears to
 almost exactly match the `hello` function within that module (except for
-returning a Promise).
+returning a Promise). A Worker is not yet created.
 
-At this point the Worker is just initialized with a stub message handler.
+On the first call to this `proxiedHello()` function the WorkerBroker will create
+a new Worker identified by the module URL (ie. `./hello.ts`), but passing it's
+own entry point module to the Worker.
 
-On the call to this `proxiedHello()` function, a `postMessage` to the Worker is
-performed, passing the names of the module and function, and the arguments. The
-stub handler will dynamically import the `./hello.ts` module, call the `hello`
-function and `postMessage` the result back to the main thread.
+This entry point module is just initialized with a stub message handler.
+
+Following this, a `postMessage` to the Worker is performed, passing the names of
+the module and function, and the arguments. The stub handler will dynamically
+import the `./hello.ts` module, call the `hello` function and `postMessage` the
+result back to the main thread.
+
+The Worker is kept alive for any further calls.
 
 #### Multiple Workers per module
 
-The Worker is kept alive for any further calls. By default Workers are
-identified by the URL of the module you import and so any further use of the
-`broker.worker*` methods, with the same module URL will reuse this same Worker.
+By default Workers are identified by the URL of the module you import and so any
+further use of the `broker.worker*` methods, with the same module URL will reuse
+this same Worker.
 
 If you want multiple Workers for the same module you can pass the optional
 `segregationId` parameter to the WorkerBroker to create separate Workers
