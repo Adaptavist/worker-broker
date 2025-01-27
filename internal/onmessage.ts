@@ -3,6 +3,8 @@ import { debug } from "./debug.ts";
 import { findTransferables } from "./transfer.ts";
 import { importAndCall } from "./importAndCall.ts";
 
+export type { WorkerMsgCall } from "./types.ts";
+
 /**
  * Minimal definition of the `self` object within a Worker,
  * as required the `onmessage` function.
@@ -35,7 +37,6 @@ export type OnMessageFn = (
 export function onmessage(
   initialize?: (msg: WorkerMsgCall) => void | Promise<void>,
 ): OnMessageFn {
-  console.log("CREATE onmessage");
   let ready = false;
   return async function ({ data }) {
     if (data.kind === "call") {

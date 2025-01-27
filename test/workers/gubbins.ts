@@ -1,11 +1,8 @@
-/// <reference no-default-lib="true" />
-/// <reference lib="deno.worker" />
-
-import { workerProxy } from "@jollytoad/worker-broker/worker";
+import { brokerProxy } from "@jollytoad/worker-broker/worker";
 import type * as Other from "./other.ts";
 
-const proxy = workerProxy(import.meta.url);
-const { getWelcome, manyThings, moreThings } = proxy<typeof Other>(
+const broker = brokerProxy(import.meta.url);
+const { getWelcome, manyThings, moreThings } = broker.workerProxy<typeof Other>(
   "./other.ts",
 );
 

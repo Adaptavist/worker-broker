@@ -19,6 +19,29 @@ export interface WorkerBrokerOptions {
 }
 
 /**
+ * Common proxy creation functions for the WorkerBroker and
+ * it's proxy within workers.
+ */
+export interface WorkerProxyFactory {
+  /**
+   * Create a proxy object of all functions of the module in the Worker
+   */
+  workerProxy<M>(
+    targetModule: URL | string,
+    segregationId?: string,
+  ): WorkerProxy<M>;
+
+  /**
+   * Create a proxy for a single function in the worker
+   */
+  workerFnProxy<F extends Fn>(
+    targetModule: URL | string,
+    functionName: string,
+    segregationId?: string,
+  ): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>>;
+}
+
+/**
  * A generic function.
  */
 // deno-lint-ignore no-explicit-any

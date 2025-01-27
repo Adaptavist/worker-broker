@@ -4,6 +4,10 @@ import {
   type WorkerSupplier,
 } from "@jollytoad/worker-broker/broker";
 
+/**
+ * Create and export a single common WorkerBroker for use in
+ * the main app.
+ */
 export default new WorkerBroker({
   workerConstructor: (moduleSpecifier, segregationId) => {
     const pathname = moduleSpecifier.pathname;
@@ -19,6 +23,8 @@ export default new WorkerBroker({
     );
   },
 });
+
+const libPathUrl = new URL("../lib/", import.meta.url);
 
 /**
  * Create a Worker for running UNTRUSTED user modules.
@@ -38,6 +44,18 @@ const createUntrustedWorker: WorkerSupplier = (
 
   return new Worker(import.meta.resolve("./untrusted_worker.ts"), {
     type: "module",
+    deno: {
+      permissions: {
+        env: false,
+        ffi: false,
+        import: "inherit",
+        net: false,
+        read: [moduleSpecifier, libPathUrl],
+        run: false,
+        sys: false,
+        write: false,
+      },
+    },
   });
 };
 

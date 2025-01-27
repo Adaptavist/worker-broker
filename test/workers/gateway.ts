@@ -1,11 +1,8 @@
-/// <reference no-default-lib="true" />
-/// <reference lib="deno.worker" />
-
-import { workerProxy } from "@jollytoad/worker-broker/worker";
+import { brokerProxy } from "@jollytoad/worker-broker/worker";
 import type * as Storage from "./storage.ts";
 
-const proxy = workerProxy(import.meta.url);
-const storage = proxy<typeof Storage>("./storage.ts");
+const broker = brokerProxy(import.meta.url);
+const storage = broker.workerProxy<typeof Storage>("./storage.ts");
 
 // TODO: init storage
 export async function auth(token: string) {

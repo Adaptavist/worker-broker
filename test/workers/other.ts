@@ -1,6 +1,3 @@
-/// <reference no-default-lib="true" />
-/// <reference lib="deno.worker" />
-
 export function getWelcome(name: string): string {
   return `Hello ${name}`;
 }

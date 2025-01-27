@@ -10,6 +10,9 @@ enableDebugging(true);
 // deno-lint-ignore no-explicit-any
 (globalThis as any).FOO = "foo";
 
+// Demonstrate how the state within a module imported into the
+// main thread is distinct from the same module imported into a
+// worker. See the test1 & test2 worker modules for this.
 setState("main");
 
 await Deno.serve(await init(handler)).finished;

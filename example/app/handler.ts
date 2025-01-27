@@ -24,16 +24,18 @@ export default cascade(
     );
 
     try {
+      // Use the WorkerBroker direct to force an import of the module.
       await broker.workerImport(targetModule, undefined, Date.now());
       return ok("Module reloaded");
     } catch (e: unknown) {
       if (e instanceof Response) {
         return e;
       } else if (
-        e instanceof Error && e.message.includes("Cannot load module")
+        e instanceof Error && e.message.includes("not found")
       ) {
         return notFound();
       } else {
+        console.error(`Error importing worker module: "${targetModule}"`);
         return plainError(
           500,
           "Internal Server Error",

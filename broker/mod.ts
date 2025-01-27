@@ -6,6 +6,7 @@ import type {
   WorkerCleaner,
   WorkerEvent,
   WorkerProxy,
+  WorkerProxyFactory,
   WorkerSupplier,
 } from "../internal/types.ts";
 
@@ -34,7 +35,7 @@ export const defaultWorkerConstructor = (
 /**
  * Manage a pool of Workers, and communication between the Workers and the main thread.
  */
-export class WorkerBroker {
+export class WorkerBroker implements WorkerProxyFactory {
   /**
    * Create a WorkerBroker
    */
@@ -159,7 +160,7 @@ export class WorkerBroker {
    * Create a proxy object of all functions of the module in the Worker
    */
   workerProxy = <M>(
-    targetModule: URL,
+    targetModule: URL | string,
     segregationId?: string,
   ): WorkerProxy<M> => {
     return workerProxy(undefined!, segregationId)(
@@ -172,7 +173,7 @@ export class WorkerBroker {
    * Create a proxy for a single function in the worker
    */
   workerFnProxy = <F extends Fn>(
-    targetModule: URL,
+    targetModule: URL | string,
     functionName: string,
     segregationId?: string,
   ): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> => {
@@ -201,7 +202,7 @@ export class WorkerBroker {
     );
   };
 
-  #cacheBustedUrl = (targetModule: URL): URL => {
+  #cacheBustedUrl = (targetModule: URL | string): URL => {
     const moduleUrl = stripHash(targetModule);
     const cacheBuster = this.#cacheBusters.get(moduleUrl.href);
     if (cacheBuster) {
@@ -223,7 +224,7 @@ export class WorkerBroker {
   };
 }
 
-function stripHash(url: URL): URL {
+function stripHash(url: URL | string): URL {
   url = new URL(url);
   url.hash = "";
   return url;

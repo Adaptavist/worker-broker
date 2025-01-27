@@ -2,7 +2,7 @@ import { notFound } from "@http/response/not-found";
 import { cascade } from "@http/route/cascade";
 import { byPattern } from "@http/route/by-pattern";
 import { plainError } from "@http/response/plain-error";
-import { callWorkerFn } from "@jollytoad/worker-broker/worker";
+import { brokerProxy } from "@jollytoad/worker-broker/worker";
 
 export default cascade(
   byPattern("/:moduleName/:functionName", async (_req, match) => {
@@ -12,14 +12,9 @@ export default cascade(
     const params = urlParams(new URLSearchParams(match.search.input));
 
     try {
-      const result = await callWorkerFn({
-        kind: "call",
-        id: crypto.randomUUID(),
-        sourceModule: import.meta.url,
-        targetModule,
-        functionName,
-        args: [params],
-      });
+      const broker = brokerProxy(import.meta.url);
+      const fn = broker.workerFnProxy(targetModule, functionName!);
+      const result = await fn(params);
 
       if (result instanceof Response) {
         return result;
@@ -30,10 +25,13 @@ export default cascade(
       if (e instanceof Response) {
         return e;
       } else if (
-        e instanceof Error && e.message.includes("Module not found")
+        e instanceof Error && e.message.includes("not found")
       ) {
         return notFound();
       } else {
+        console.error(
+          `Error calling worker function: "${functionName}()" in "${targetModule}"`,
+        );
         return plainError(
           500,
           "Internal Server Error",

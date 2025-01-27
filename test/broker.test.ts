@@ -10,8 +10,21 @@ import { enableDebugging } from "@jollytoad/worker-broker/debug";
 import type * as Gubbins from "./workers/gubbins.ts";
 import type * as Gateway from "./workers/gateway.ts";
 import type * as Stateful from "./workers/stateful.ts";
+import type { getWelcome } from "./workers/other.ts";
 
 enableDebugging(true);
+
+Deno.test("worker function proxy", async () => {
+  const broker = new WorkerBroker();
+
+  const hello = broker.workerFnProxy<typeof getWelcome>(
+    new URL("./workers/other.ts", import.meta.url),
+    "getWelcome",
+  );
+  const result = await hello("World");
+
+  assertEquals(result, "Hello World");
+});
 
 Deno.test("a pair of workers", async () => {
   const broker = new WorkerBroker();
