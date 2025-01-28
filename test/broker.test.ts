@@ -1,6 +1,7 @@
 import {
   assertEquals,
   assertExists,
+  assertInstanceOf,
   assertNotStrictEquals,
   assertRejects,
   assertStrictEquals,
@@ -10,6 +11,7 @@ import { enableDebugging } from "@jollytoad/worker-broker/debug";
 import type * as Gubbins from "./workers/gubbins.ts";
 import type * as Gateway from "./workers/gateway.ts";
 import type * as Stateful from "./workers/stateful.ts";
+import type * as Responses from "./workers/responses.ts";
 import type { getWelcome } from "./workers/other.ts";
 
 enableDebugging(true);
@@ -158,6 +160,51 @@ Deno.test("cache busting", async () => {
 
   broker.terminate();
 });
+
+const thrownResponseTest = (module: string) => async () => {
+  const broker = new WorkerBroker();
+  const responses = broker.workerProxy<typeof Responses>(
+    new URL(module, import.meta.url),
+  );
+
+  const response = await assertRejects(async () => {
+    return await responses.throwForbidden();
+  });
+
+  assertInstanceOf(response, Response);
+
+  if (response instanceof Response) {
+    assertEquals(response.status, 403);
+  }
+
+  broker.terminate();
+};
+
+Deno.test("thrown response", thrownResponseTest("./workers/responses.ts"));
+Deno.test(
+  "thrown response (proxied)",
+  thrownResponseTest("./workers/proxy_responses.ts"),
+);
+
+const returnedResponseTest = (module: string) => async () => {
+  const broker = new WorkerBroker();
+  const responses = broker.workerProxy<typeof Responses>(
+    new URL(module, import.meta.url),
+  );
+
+  const response = await responses.returnForbidden();
+
+  assertInstanceOf(response, Response);
+  assertEquals(response.status, 403);
+
+  broker.terminate();
+};
+
+Deno.test("returned response", returnedResponseTest("./workers/responses.ts"));
+Deno.test(
+  "returned response (proxied)",
+  returnedResponseTest("./workers/proxy_responses.ts"),
+);
 
 // Deno.test('iterables', async () => {
 //     const broker = new WorkerBroker()

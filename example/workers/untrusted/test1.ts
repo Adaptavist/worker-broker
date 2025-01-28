@@ -28,6 +28,7 @@ export function error() {
 export function forbidden() {
   throw new Response(null, {
     status: 403,
+    statusText: "Forbidden",
   });
 }
 

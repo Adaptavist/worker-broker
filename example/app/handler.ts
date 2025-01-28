@@ -35,7 +35,7 @@ export default cascade(
       ) {
         return notFound();
       } else {
-        console.error(`Error importing worker module: "${targetModule}"`);
+        console.error(`Error importing worker module: "${targetModule}"`, e);
         return plainError(
           500,
           "Internal Server Error",

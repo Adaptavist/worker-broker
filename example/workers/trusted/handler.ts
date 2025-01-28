@@ -31,6 +31,7 @@ export default cascade(
       } else {
         console.error(
           `Error calling worker function: "${functionName}()" in "${targetModule}"`,
+          e,
         );
         return plainError(
           500,

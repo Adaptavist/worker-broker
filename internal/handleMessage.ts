@@ -30,7 +30,9 @@ async (
         ),
       };
     } catch (error: unknown) {
-      props = { error };
+      props = {
+        error: await marshal(error),
+      };
     }
 
     const msg: WorkerMsgResult<Fn> = {
