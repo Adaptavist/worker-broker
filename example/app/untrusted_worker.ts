@@ -1,7 +1,4 @@
-import {
-  onmessage,
-  type WorkerMsgCall,
-} from "@jollytoad/worker-broker/onmessage";
+import { onmessage } from "@jollytoad/worker-broker/onmessage";
 import { brokerProxy } from "@jollytoad/worker-broker/worker";
 
 declare const self: Worker;
@@ -17,8 +14,8 @@ declare const self: Worker;
  * It also locks down the fetch property itself to ensure that the
  * imported 'untrusted' worker module can no longer tamper with it.
  */
-function init(msg: WorkerMsgCall) {
-  const broker = brokerProxy(msg.targetModule);
+function init() {
+  const broker = brokerProxy();
   const fetch = broker.workerFnProxy<typeof globalThis.fetch>(
     new URL("../workers/trusted/fetch_proxy.ts", import.meta.url),
     "fetch",

@@ -25,7 +25,7 @@ export default cascade(
 
     try {
       // Use the WorkerBroker direct to force an import of the module.
-      await broker.workerImport(targetModule, undefined, Date.now());
+      await broker.workerImport(targetModule, Date.now());
       return ok("Module reloaded");
     } catch (e: unknown) {
       if (e instanceof Response) {

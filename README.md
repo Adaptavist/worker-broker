@@ -80,9 +80,17 @@ By default Workers are identified by the URL of the module you import and so any
 further use of the `broker.worker*` methods, with the same module URL will reuse
 this same Worker.
 
-If you want multiple Workers for the same module you can pass the optional
-`segregationId` parameter to the WorkerBroker to create separate Workers
-identified by the combination of module URL and this id.
+If you want multiple Workers for the same module you can pass a tuple in place
+of the module URL, containing the URL and a unique 'segregation' identifier:
+
+```ts
+const segregationId = "user-123";
+
+const proxiedHello = broker.workerFnProxy<typeof hello>(
+  [new URL("./hello.ts", import.meta.url), segregationId],
+  "hello",
+);
+```
 
 This is useful if you want to ensure each user hits their own isolated instance
 of a Worker, esp if the module is from an untrusted source.
@@ -120,7 +128,7 @@ import { brokerProxy } from "@jollytoad/worker-broker/worker";
 import type * as Hello from "./hello.ts";
 
 // Create a proxy to the WorkerBroker
-const broker = brokerProxy(import.meta.url);
+const broker = brokerProxy();
 
 // Create a proxy of all functions of the module within the Worker
 const helloService = broker.workerProxy<typeof Hello>(
@@ -172,7 +180,7 @@ deno task start
 
 The entrypoint of the app is `example/app/main.ts`.
 
-The app exposed two endpoints:
+The app exposes two endpoints:
 
 - `http://localhost:8000/<module-name>`
 

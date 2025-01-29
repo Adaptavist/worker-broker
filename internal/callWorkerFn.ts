@@ -18,7 +18,10 @@ export const callWorkerFn = <F extends Fn>(
   getWorker: WorkerSupplier = () => self,
 ): Promise<Awaited<ReturnType<F>>> =>
   new Promise((resolve, reject) => {
-    const worker = getWorker(new URL(msg.targetModule), msg.segregationId);
+    const worker = getWorker(
+      new URL(msg.targetModule),
+      msg.targetSegregationId,
+    );
 
     const proxyType = worker === self ? "worker" : "container";
 

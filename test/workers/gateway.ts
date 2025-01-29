@@ -1,7 +1,7 @@
 import { brokerProxy } from "@jollytoad/worker-broker/worker";
 import type * as Storage from "./storage.ts";
 
-const broker = brokerProxy(import.meta.url);
+const broker = brokerProxy();
 const storage = broker.workerProxy<typeof Storage>("./storage.ts");
 
 // TODO: init storage

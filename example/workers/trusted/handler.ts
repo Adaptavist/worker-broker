@@ -2,17 +2,25 @@ import { notFound } from "@http/response/not-found";
 import { cascade } from "@http/route/cascade";
 import { byPattern } from "@http/route/by-pattern";
 import { plainError } from "@http/response/plain-error";
-import { brokerProxy } from "@jollytoad/worker-broker/worker";
+import {
+  brokerProxy,
+  type WorkerSpecifier,
+} from "@jollytoad/worker-broker/worker";
 
 export default cascade(
   byPattern("/:moduleName/:functionName", async (_req, match) => {
     const { moduleName, functionName } = match.pathname.groups;
-    const targetModule =
-      new URL(`../untrusted/${moduleName}.ts`, import.meta.url).href;
-    const params = urlParams(new URLSearchParams(match.search.input));
+    const { id, ...params } = urlParams(
+      new URLSearchParams(match.search.input),
+    );
+
+    const targetModule: WorkerSpecifier = [
+      new URL(`../untrusted/${moduleName}.ts`, import.meta.url),
+      id,
+    ];
 
     try {
-      const broker = brokerProxy(import.meta.url);
+      const broker = brokerProxy();
       const fn = broker.workerFnProxy(targetModule, functionName!);
       const result = await fn(params);
 
@@ -30,7 +38,9 @@ export default cascade(
         return notFound();
       } else {
         console.error(
-          `Error calling worker function: "${functionName}()" in "${targetModule}"`,
+          `Error calling worker function: "${functionName}()" in "${
+            targetModule[0]
+          }"`,
           e,
         );
         return plainError(

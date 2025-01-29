@@ -7,12 +7,14 @@ import type {
   WorkerEvent,
   WorkerProxy,
   WorkerProxyFactory,
+  WorkerSpecifier,
   WorkerSupplier,
 } from "../internal/types.ts";
 
 export type {
   WorkerBrokerOptions,
   WorkerCleaner,
+  WorkerSpecifier,
   WorkerSupplier,
 } from "../internal/types.ts";
 
@@ -159,12 +161,10 @@ export class WorkerBroker implements WorkerProxyFactory {
   /**
    * Create a proxy object of all functions of the module in the Worker
    */
-  workerProxy = <M>(
-    targetModule: URL | string,
-    segregationId?: string,
-  ): WorkerProxy<M> => {
-    return workerProxy(undefined!, segregationId)(
-      this.#cacheBustedUrl(targetModule),
+  workerProxy = <M>(target: WorkerSpecifier): WorkerProxy<M> => {
+    return workerProxy(
+      undefined,
+      this.#cacheBustedSpec(target),
       this.getWorker,
     );
   };
@@ -173,12 +173,12 @@ export class WorkerBroker implements WorkerProxyFactory {
    * Create a proxy for a single function in the worker
    */
   workerFnProxy = <F extends Fn>(
-    targetModule: URL | string,
+    target: WorkerSpecifier,
     functionName: string,
-    segregationId?: string,
   ): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>> => {
-    return workerFnProxy(undefined!, segregationId)(
-      this.#cacheBustedUrl(targetModule),
+    return workerFnProxy(
+      undefined,
+      this.#cacheBustedSpec(target),
       functionName,
       this.getWorker,
     );
@@ -189,26 +189,26 @@ export class WorkerBroker implements WorkerProxyFactory {
    * a function call.
    */
   workerImport = (
-    targetModule: URL,
-    segregationId?: string,
+    target: WorkerSpecifier,
     cacheBuster?: string | number,
   ): Promise<unknown> => {
     if (cacheBuster) {
-      this.#cacheBusters.set(stripHash(targetModule).href, String(cacheBuster));
+      this.#cacheBusters.set(stripHash(target).href, String(cacheBuster));
     }
-    return workerImport(undefined!, segregationId)(
-      this.#cacheBustedUrl(targetModule),
+    return workerImport(
+      undefined,
+      this.#cacheBustedSpec(target),
       this.getWorker,
     );
   };
 
-  #cacheBustedUrl = (targetModule: URL | string): URL => {
-    const moduleUrl = stripHash(targetModule);
+  #cacheBustedSpec = (target: WorkerSpecifier): WorkerSpecifier => {
+    const moduleUrl = stripHash(target);
     const cacheBuster = this.#cacheBusters.get(moduleUrl.href);
     if (cacheBuster) {
       moduleUrl.hash = cacheBuster;
     }
-    return moduleUrl;
+    return [moduleUrl, Array.isArray(target) ? target[1] : undefined];
   };
 
   /**
@@ -224,8 +224,8 @@ export class WorkerBroker implements WorkerProxyFactory {
   };
 }
 
-function stripHash(url: URL | string): URL {
-  url = new URL(url);
+function stripHash(target: WorkerSpecifier): URL {
+  const url = new URL(Array.isArray(target) ? target[0] : target);
   url.hash = "";
   return url;
 }

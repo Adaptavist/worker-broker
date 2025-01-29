@@ -43,6 +43,8 @@ async (
 
     debug("container forwarding result:", msg);
 
-    getWorker(new URL(data.sourceModule), data.segregationId).postMessage(msg);
+    getWorker(new URL(data.sourceModule), data.sourceSegregationId).postMessage(
+      msg,
+    );
   }
 };

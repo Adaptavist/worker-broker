@@ -2,6 +2,7 @@ import type { WorkerMsgCall } from "./types.ts";
 import { debug } from "./debug.ts";
 import { findTransferables } from "./transfer.ts";
 import { importAndCall } from "./importAndCall.ts";
+import { setSpecifier } from "./workerSpecifier.ts";
 
 export type { WorkerMsgCall } from "./types.ts";
 
@@ -35,16 +36,20 @@ export type OnMessageFn = (
  *   can be used to initialize the global environment within the Worker.
  */
 export function onmessage(
-  initialize?: (msg: WorkerMsgCall) => void | Promise<void>,
+  initialize?: () => void | Promise<void>,
 ): OnMessageFn {
   let ready = false;
   return async function ({ data }) {
     if (data.kind === "call") {
       debug("worker received call:", data);
 
-      if (!ready && initialize) {
+      if (!ready) {
         debug("initializing worker");
-        await initialize(data);
+
+        setSpecifier(data.targetModule, data.targetSegregationId);
+
+        await initialize?.();
+
         ready = true;
       }
 

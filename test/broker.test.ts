@@ -100,13 +100,27 @@ Deno.test("shared worker", async () => {
   broker.terminate();
 });
 
-Deno.test("segregated workers", async () => {
+Deno.test("segregated workers using a shared worker", async () => {
+  const broker = new WorkerBroker();
+
+  const gubbinsModule = new URL("./workers/gubbins.ts", import.meta.url);
+
+  const gubbins1 = broker.workerProxy<typeof Gubbins>([gubbinsModule, "A"]);
+  const gubbins2 = broker.workerProxy<typeof Gubbins>([gubbinsModule, "B"]);
+
+  assertEquals(await gubbins1.hello("World"), "Hello World");
+  assertEquals(await gubbins2.hello("World"), "Hello World");
+
+  broker.terminate();
+});
+
+Deno.test("segregated workers have independent state", async () => {
   const broker = new WorkerBroker();
 
   const statefulModule = new URL("./workers/stateful.ts", import.meta.url);
 
-  const stateful1 = broker.workerProxy<typeof Stateful>(statefulModule, "A");
-  const stateful2 = broker.workerProxy<typeof Stateful>(statefulModule, "B");
+  const stateful1 = broker.workerProxy<typeof Stateful>([statefulModule, "A"]);
+  const stateful2 = broker.workerProxy<typeof Stateful>([statefulModule, "B"]);
 
   await stateful1.setState("THIS");
   await stateful2.setState("THAT");
@@ -143,7 +157,7 @@ Deno.test("cache busting", async () => {
   assertEquals(await stateful1.getState(), "THIS");
 
   // Force reload of module by passing a new cache busting value
-  await broker.workerImport(statefulModule, undefined, Date.now());
+  await broker.workerImport(statefulModule, Date.now());
 
   const statefulWorker2 = broker.getWorker(statefulModule);
 

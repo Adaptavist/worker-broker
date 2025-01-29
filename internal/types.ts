@@ -19,6 +19,19 @@ export interface WorkerBrokerOptions {
 }
 
 /**
+ * A URL specifier for a module.
+ */
+export type ModuleSpecifier = string | URL;
+
+/**
+ * A specifier for a Worker: a module URL and an optional segregation id.
+ */
+export type WorkerSpecifier = ModuleSpecifier | [
+  ModuleSpecifier,
+  segregationId?: string,
+];
+
+/**
  * Common proxy creation functions for the WorkerBroker and
  * it's proxy within workers.
  */
@@ -26,18 +39,14 @@ export interface WorkerProxyFactory {
   /**
    * Create a proxy object of all functions of the module in the Worker
    */
-  workerProxy<M>(
-    targetModule: URL | string,
-    segregationId?: string,
-  ): WorkerProxy<M>;
+  workerProxy<M>(workerSpecifier: WorkerSpecifier): WorkerProxy<M>;
 
   /**
    * Create a proxy for a single function in the worker
    */
   workerFnProxy<F extends Fn>(
-    targetModule: URL | string,
+    workerSpecifier: WorkerSpecifier,
     functionName: string,
-    segregationId?: string,
   ): (...args: Parameters<F>) => Promise<Awaited<ReturnType<F>>>;
 }
 
@@ -67,7 +76,7 @@ export interface WorkerMsgCall<F extends Fn = Fn> {
    * An identifier to segregate Workers even for the same
    * module. This may be a user id for example.
    */
-  readonly segregationId?: string;
+  readonly targetSegregationId?: string;
   /**
    * A value added as the hash of an import URL of a module,
    * as a way to force a re-import of the module.
@@ -77,6 +86,10 @@ export interface WorkerMsgCall<F extends Fn = Fn> {
    * The module from which the call originates
    */
   readonly sourceModule?: string;
+  /**
+   * The segregation id of the source Worker.
+   */
+  readonly sourceSegregationId?: string;
   /**
    * The name of the function to call within the module
    */

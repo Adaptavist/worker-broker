@@ -1,7 +1,7 @@
 import { brokerProxy } from "@jollytoad/worker-broker/worker";
 import type * as Other from "./other.ts";
 
-const broker = brokerProxy(import.meta.url);
+const broker = brokerProxy();
 const { getWelcome, manyThings, moreThings } = broker.workerProxy<typeof Other>(
   "./other.ts",
 );
