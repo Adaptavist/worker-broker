@@ -1,9 +1,14 @@
 import type { Fn, Marshalled } from "./types.ts";
 
+interface MarshallerModule<I = unknown, O = unknown> {
+  marshal(value: I): O | Promise<O>;
+  unmarshal(value: O): I | Promise<I>;
+}
+
 // deno-lint-ignore no-explicit-any
-const classes: Record<string, any> = {
-  "Response": Response,
-  "Request": Request,
+const classes: Record<string, [any, () => Promise<MarshallerModule>]> = {
+  "Response": [Response, () => import("./marshaller/Response.ts")],
+  "Request": [Request, () => import("./marshaller/Request.ts")],
 };
 
 /**
@@ -12,10 +17,9 @@ const classes: Record<string, any> = {
  */
 export const marshal = async (val: unknown): Promise<unknown> => {
   for (const marshaller in classes) {
-    if (val instanceof classes[marshaller]) {
-      return (await import(`./marshaller/${marshaller}.ts`)).marshal(
-        val,
-      );
+    if (val instanceof classes[marshaller][0]) {
+      const marshallerModule = await classes[marshaller][1]();
+      return marshallerModule.marshal(val);
     }
   }
   return val;
@@ -26,8 +30,8 @@ export const marshal = async (val: unknown): Promise<unknown> => {
  */
 export const unmarshal = async <T = unknown>(val: unknown): Promise<T> => {
   if (isMarshalled(val)) {
-    return await (await import(`./marshaller/${val.__marshaller__}.ts`))
-      .unmarshal(val);
+    const marshallerModule = await classes[val.__marshaller__][1]();
+    return marshallerModule.unmarshal(val) as Promise<T>;
   }
   return val as T;
 };
