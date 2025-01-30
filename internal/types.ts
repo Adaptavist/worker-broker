@@ -155,9 +155,9 @@ export interface WorkerEvent {
    */
   worker: Worker;
   /**
-   * A unique key for the Worker, you can use
+   * An opaque unique key for the Worker, you can use
    * this to index information about Workers rather than
-   * the actual Worker
+   * the actual Worker (do not try to parse this)
    */
   key: string;
   /**

@@ -159,10 +159,95 @@ by attaching the value as the hash of the module URL:
 ```ts
 await broker.workerImport(
   new URL("./hello.ts", import.meta.url),
-  undefined,
   Date.now(),
 );
 ```
+
+### Worker customization
+
+You can customize the creation of a Worker by passing a `workerConstructor` to
+the `WorkerBroker` when it's created...
+
+```ts
+const broker = new WorkerBroker({
+  workerConstructor: (moduleSpecifier, segregationId) => {
+    return new Worker(import.meta.resolve("./my_worker.ts"), {
+      type: "module",
+      deno: {
+        env: false,
+        ffi: false,
+        import: "inherit",
+        net: false,
+        read: [moduleSpecifier, libPathUrl],
+        run: false,
+        sys: false,
+        write: false,
+      },
+    });
+  },
+});
+```
+
+Allowing you configure the Worker based on the module URL and/or the segregation
+id. You can also supply your own worker entry point module.
+
+We supply a function to create the `onmessage` handler within the worker, this
+is the most simple example of a Worker entry point module:
+
+```ts
+import { onmessage } from "@jollytoad/worker-broker/onmessage";
+
+declare const self: Worker;
+
+self.onmessage = onmessage();
+```
+
+Take a look at the example app for a more detailed example of Worker
+customization.
+
+### Worker clean-up
+
+Each new Worker uses a not insignificant amount of memory, and the WorkerBroker
+does not terminate any workers it creates by default. So you may want to
+consider some kind of clean up strategy if you plan to have many workers.
+
+You can pass a `workerCleaner` to the WorkerBroker to deal with this, which is
+just a simple function that receives events from the WorkerBroker.
+
+We provide a simple default implementation of a WorkerCleaner, but you have to
+explicitly pass it to the WorkerBroker constructor...
+
+```ts
+import { WorkerBroker } from "@jollytoad/worker-broker/broker";
+import { cleaner } from "@jollytoad/worker-broker/cleaner";
+
+const broker = new WorkerBroker({
+  workerCleaner: cleaner({
+    memoryCeiling: 100_000_000,
+    workerCount: 10,
+  }),
+});
+```
+
+This example will terminate the least recently used workers if the Deno process
+exceeds 100Mb total memory usage, or the number of workers exceeds 10.
+
+You can implement you own `WorkerCleaner` function if you need more specific
+behaviour.
+
+#### WorkerEvents
+
+There are four types of event that are passed to the `WorkerCleaner`.
+
+- `create` - when a new Worker is created and accessed for the first time
+- `get` - when an existing Worker is accessed
+- `remove` - when a Worker was removed from the broker
+- `terminate` - when the WorkerBroker (along with all Workers) is terminated
+
+Your WorkerCleaner can maintain is own last-used table from this, and determine
+it's course of action, the event contains the `WorkerBroker` and the individual
+`Worker` in question (except for `terminate`), so it can call back to the broker
+to perform a `remove` of any other worker.
 
 ## Example App
 
