@@ -10,6 +10,7 @@ import type {
   WorkerSpecifier,
   WorkerSupplier,
 } from "../internal/types.ts";
+import { getTelemetry } from "../internal/telemetry.ts";
 
 export type {
   WorkerBrokerOptions,
@@ -19,23 +20,16 @@ export type {
 } from "../internal/types.ts";
 
 /**
- * Default module for each new Worker.
- */
-export const defaultWorkerModule: URL = new URL(
-  "../internal/worker.ts",
-  import.meta.url,
-);
-
-/**
  * Default Worker constructor function.
  */
-export const defaultWorkerConstructor = (
-  _moduleSpecifier: URL,
-  _segregationId?: string,
-): Worker => new Worker(defaultWorkerModule, { type: "module" });
+export const defaultWorkerConstructor: WorkerSupplier = (
+  _moduleSpecifier,
+  _segregationId,
+): Worker => new Worker(getTelemetry().defaultWorkerModule, { type: "module" });
 
 /**
- * Manage a pool of Workers, and communication between the Workers and the main thread.
+ * Manage a pool of Workers, and communication between the Workers and the
+ * main thread.
  */
 export class WorkerBroker implements WorkerProxyFactory {
   /**
@@ -67,12 +61,14 @@ export class WorkerBroker implements WorkerProxyFactory {
 
   /**
    * Get a new or existing worker for the given module.
-   * The worker will be cached and reused if the same module is requested again, unless a segregationId
-   * is given, in which a new Worker per module per segregation id is created.
+   * The worker will be cached and reused if the same module is requested again,
+   * unless a segregationId is given, in which case a new Worker per module per
+   * segregation id is created.
    * The URL hash will be stripped from the module specifier.
    *
    * @param moduleSpecifier must be an absolute URL for the module
-   * @param segregationId an optional unique id to segregate a Worker from other Workers of the same module
+   * @param segregationId an optional unique id to segregate a Worker from other
+   *        Workers of the same module
    * @return a new or existing Worker for the module
    */
   getWorker = (moduleSpecifier: URL, segregationId?: string): Worker => {
@@ -99,7 +95,8 @@ export class WorkerBroker implements WorkerProxyFactory {
    * This does not terminate the Worker.
    *
    * @param moduleSpecifier must be an absolute URL for the module
-   * @param segregationId an optional unique id to segregate a Worker from other Workers of the same module
+   * @param segregationId an optional unique id to segregate a Worker from
+   *        other Workers of the same module
    * @return the removed Worker if it existed
    */
   removeWorker = (
@@ -126,15 +123,20 @@ export class WorkerBroker implements WorkerProxyFactory {
   };
 
   /**
-   * Create a new worker for the given module, register a message handler and add it to the pool.
+   * Create a new worker for the given module, register a message handler and
+   * add it to the pool.
    *
    * @param moduleSpecifier must be an absolute URL for the module
-   * @param segregationId an optional unique id to segregate a Worker from other Workers of the same module
+   * @param segregationId an optional unique id to segregate a Worker from
+   *        other Workers of the same module
    * @returns always a new Worker instance
    */
   #createWorker = (moduleSpecifier: URL, segregationId?: string): Worker => {
     const moduleUrl = stripHash(moduleSpecifier);
-    const worker = this.#workerConstructor(moduleUrl, segregationId);
+    const worker = this.#workerConstructor(
+      moduleUrl,
+      segregationId,
+    );
 
     this.#workers.set(this.#workerKey(moduleSpecifier, segregationId), worker);
 

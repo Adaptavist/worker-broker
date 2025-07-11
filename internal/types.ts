@@ -98,6 +98,10 @@ export interface WorkerMsgCall<F extends Fn = Fn> {
    * The arguments of the function call
    */
   readonly args?: Parameters<F>;
+  /**
+   * The serialized telemetry context for propagation to/from a Worker
+   */
+  readonly context?: TelemetryContext;
 }
 
 /**
@@ -208,3 +212,46 @@ export interface Marshalled<T extends string = string> {
    */
   readonly __marshaller__: T;
 }
+
+/**
+ * Telemetry support functions for the WorkerBroker.
+ */
+export interface Telemetry {
+  /**
+   * Create a telemetry span for an internal WorkerMsg handling function
+   * @param spanName the name of the handling function
+   * @param msg a WorkerMsg
+   * @param fn the function to call within the span (the span is ended when this returns)
+   */
+  msgSpan<T>(
+    spanName: string,
+    msg: WorkerMsg,
+    fn: (log: TelemetryTools) => Promise<T>,
+  ): Promise<T>;
+
+  /**
+   * Marshal the active telemetry context into the serializable context propagation format
+   */
+  marshalContext(): TelemetryContext;
+
+  /**
+   * The default worker module to use for this telemetry system
+   */
+  defaultWorkerModule: string;
+}
+
+/**
+ * Telemetry functions passed to the callback within a `msgSpan`
+ */
+export interface TelemetryTools {
+  /**
+   * Log a telemetry event within the current span
+   */
+  event(name: string): void;
+}
+
+/**
+ * Opaque context serialization for propagation to/from a Worker.
+ * This MUST be serializable by `postMessage`.
+ */
+export type TelemetryContext = unknown;

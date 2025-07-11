@@ -1,11 +1,17 @@
-#!/usr/bin/env -S deno run --allow-net --allow-read --watch
+#!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --watch
 
 import { enableDebugging } from "@jollytoad/worker-broker/debug";
 import init from "@http/host-deno-local/init";
 import { setState } from "../lib/state.ts";
 import handler from "./handler.ts";
+import { setTelemetry } from "@jollytoad/worker-broker/telemetry";
+import { openTelemetry } from "@jollytoad/worker-broker/opentelemetry";
 
-enableDebugging(true);
+if (Deno.env.get("OTEL_DENO") === "true") {
+  setTelemetry(openTelemetry());
+}
+
+enableDebugging(false);
 
 // deno-lint-ignore no-explicit-any
 (globalThis as any).FOO = "foo";

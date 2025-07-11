@@ -4,9 +4,9 @@ import type {
   WorkerMsgResult,
   WorkerSupplier,
 } from "./types.ts";
-import { debug } from "./debug.ts";
 import { findTransferables } from "./transfer.ts";
 import { marshalArgs, unmarshal } from "./marshal.ts";
+import { getTelemetry } from "./telemetry.ts";
 
 declare const self: Worker;
 
@@ -16,20 +16,24 @@ declare const self: Worker;
 export const callWorkerFn = <F extends Fn>(
   msg: WorkerMsgCall<F>,
   getWorker: WorkerSupplier = () => self,
-): Promise<Awaited<ReturnType<F>>> =>
-  new Promise((resolve, reject) => {
+): Promise<Awaited<ReturnType<F>>> => {
+  const { msgSpan, marshalContext } = getTelemetry();
+
+  return msgSpan("callWorkerFn", msg, (log) => {
     const worker = getWorker(
       new URL(msg.targetModule),
       msg.targetSegregationId,
     );
 
-    const proxyType = worker === self ? "worker" : "container";
+    const { promise, resolve, reject } = Promise.withResolvers<
+      Awaited<ReturnType<F>>
+    >();
 
     const messageHandler = async (
       { data }: MessageEvent<WorkerMsgResult<F>>,
     ) => {
       if (data.kind === "result" && data.id === msg.id) {
-        debug(`${proxyType} proxy received result:`, data);
+        log.event("result");
 
         worker.removeEventListener("message", messageHandler);
 
@@ -43,17 +47,27 @@ export const callWorkerFn = <F extends Fn>(
 
     worker.addEventListener("message", messageHandler);
 
+    const carrier = marshalContext();
+
     (async function () {
-      const marshalledMsg = {
+      const marshalledMsg: MarshalledMsg = {
         ...msg,
         args: msg.args?.length ? await marshalArgs(msg.args) : [],
+        context: carrier,
       };
 
-      debug(`${proxyType} proxy sending call:`, marshalledMsg);
+      const transferables = await findTransferables(...marshalledMsg.args);
+
+      log.event("postMessage");
 
       worker.postMessage(
         marshalledMsg,
-        await findTransferables(...marshalledMsg.args),
+        transferables,
       );
     })();
+
+    return promise;
   });
+};
+
+type MarshalledMsg = Omit<WorkerMsgCall, "args"> & { args: unknown[] };

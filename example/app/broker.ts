@@ -1,8 +1,12 @@
 import {
-  defaultWorkerModule,
   WorkerBroker,
   type WorkerSupplier,
 } from "@jollytoad/worker-broker/broker";
+import { getTelemetry } from "@jollytoad/worker-broker/telemetry";
+
+const untrustedWorkerModule = Deno.env.get("OTEL_DENO") === "true"
+  ? import.meta.resolve("./untrusted_worker_otel.ts")
+  : import.meta.resolve("./untrusted_worker.ts");
 
 /**
  * Create and export a single common WorkerBroker for use in
@@ -42,7 +46,7 @@ const createUntrustedWorker: WorkerSupplier = (
     segregationId,
   );
 
-  return new Worker(import.meta.resolve("./untrusted_worker.ts"), {
+  return new Worker(untrustedWorkerModule, {
     type: "module",
     deno: {
       permissions: {
@@ -68,5 +72,5 @@ const createTrustedWorker: WorkerSupplier = (
 ) => {
   console.log("Creating trusted worker:", moduleSpecifier.href, segregationId);
 
-  return new Worker(defaultWorkerModule, { type: "module" });
+  return new Worker(getTelemetry().defaultWorkerModule, { type: "module" });
 };

@@ -3,12 +3,13 @@ import { debug } from "./debug.ts";
 import { findTransferables } from "./transfer.ts";
 import { importAndCall } from "./importAndCall.ts";
 import { setSpecifier } from "./workerSpecifier.ts";
+import { getTelemetry } from "./telemetry.ts";
 
 export type { WorkerMsgCall } from "./types.ts";
 
 /**
  * Minimal definition of the `self` object within a Worker,
- * as required the `onmessage` function.
+ * as required by the `onmessage` function.
  */
 export interface WorkerSelf {
   /**
@@ -39,25 +40,28 @@ export function onmessage(
   initialize?: () => void | Promise<void>,
 ): OnMessageFn {
   let ready = false;
-  return async function ({ data }) {
-    if (data.kind === "call") {
-      debug("worker received call:", data);
 
-      if (!ready) {
-        debug("initializing worker");
+  return async function ({ data: callMsg }) {
+    if (callMsg.kind === "call") {
+      await getTelemetry().msgSpan("onmessage", callMsg, async () => {
+        debug("worker received call:", callMsg);
 
-        setSpecifier(data.targetModule, data.targetSegregationId);
+        if (!ready) {
+          debug("initializing worker");
 
-        await initialize?.();
+          setSpecifier(callMsg.targetModule, callMsg.targetSegregationId);
 
-        ready = true;
-      }
+          await initialize?.();
 
-      const msg = await importAndCall(data);
+          ready = true;
+        }
 
-      debug("worker sending result:", msg);
+        const resultMsg = await importAndCall(callMsg);
 
-      this.postMessage(msg, await findTransferables(msg.result));
+        debug("worker sending result:", resultMsg);
+
+        this.postMessage(resultMsg, await findTransferables(resultMsg.result));
+      });
     }
   };
 }

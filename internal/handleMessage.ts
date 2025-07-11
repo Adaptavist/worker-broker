@@ -1,6 +1,7 @@
 import { callWorkerFn } from "./callWorkerFn.ts";
 import { debug } from "./debug.ts";
 import { marshal } from "./marshal.ts";
+import { getTelemetry } from "@jollytoad/worker-broker/telemetry";
 import type {
   Fn,
   WorkerMsgCall,
@@ -13,38 +14,48 @@ import type {
  */
 export const handleMessage = (getWorker: WorkerSupplier) =>
 async (
-  { data }: MessageEvent<WorkerMsgCall<Fn>>,
-) => {
-  if (data.kind === "call" && data.sourceModule) {
-    debug("container received call:", data);
+  { data: incomingMsg }: MessageEvent<WorkerMsgCall<Fn>>,
+): Promise<void> => {
+  if (incomingMsg.kind === "call" && incomingMsg.sourceModule) {
+    await getTelemetry().msgSpan("handleMessage", incomingMsg, async () => {
+      debug("container received call:", incomingMsg);
 
-    let props: Pick<WorkerMsgResult<Fn>, "result" | "error"> = {};
-    try {
-      // Call fn in target module
-      props = {
-        result: await marshal(
-          await callWorkerFn(
-            data,
-            getWorker,
+      // remove the telemetry context before we forward the call
+      // so that further spans pick up the active context rather
+      // than the reuse the context from the message
+      const { context: _, ...callMsg } = incomingMsg;
+
+      let props: Pick<WorkerMsgResult<Fn>, "result" | "error"> = {};
+      try {
+        // Call fn in target module
+        props = {
+          result: await marshal(
+            await callWorkerFn(
+              callMsg,
+              getWorker,
+            ),
           ),
-        ),
+        };
+      } catch (error: unknown) {
+        props = {
+          error: await marshal(error),
+        };
+      }
+
+      const resultMsg: WorkerMsgResult<Fn> = {
+        ...incomingMsg,
+        kind: "result",
+        ...props,
       };
-    } catch (error: unknown) {
-      props = {
-        error: await marshal(error),
-      };
-    }
 
-    const msg: WorkerMsgResult<Fn> = {
-      ...data,
-      kind: "result",
-      ...props,
-    };
+      debug("container forwarding result:", resultMsg);
 
-    debug("container forwarding result:", msg);
-
-    getWorker(new URL(data.sourceModule), data.sourceSegregationId).postMessage(
-      msg,
-    );
+      getWorker(
+        new URL(incomingMsg.sourceModule!),
+        incomingMsg.sourceSegregationId,
+      ).postMessage(
+        resultMsg,
+      );
+    });
   }
 };

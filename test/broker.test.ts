@@ -230,3 +230,24 @@ Deno.test(
 
 //     broker.terminate()
 // })
+
+// Deno.test.only("logger", async () => {
+//   const broker = new WorkerBroker({
+//     workerConstructor(moduleSpecifier, segregationId) {
+//       const isTrusted = false;
+//       if (isTrusted) {
+//         return defaultWorkerConstructor(moduleSpecifier, segregationId);
+//       } else {
+//         return new Worker(import.meta.resolve("./worker_untrusted.ts"), {
+//           type: "module",
+//         });
+//       }
+//     },
+//   });
+
+//   const spout = broker.workerFnProxy<typeof spoutToConsole>(
+//     new URL("./workers/chatty.ts", import.meta.url),
+//     "spoutToConsole",
+//   );
+//   await spout();
+// });

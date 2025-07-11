@@ -330,3 +330,26 @@ To see this in action, try hitting the following in order:
   reimported within the Worker
 - http://localhost:8000/test1/state -> `test1` - the state has been reset to
   it's original value
+
+### Telemetry
+
+WorkerBroker supports OpenTelemetry (and potentially other bespoke telemetry),
+and propagation of context across the Worker boundary.
+
+Support must be explicitly enabled globally within a JavaScript realm, ie. on
+the main thread where the WorkerBroker exists, and in the Workers.
+
+In your main entrypoint:
+
+```ts
+import { setTelemetry } from "@jollytoad/worker-broker/telemetry";
+import { openTelemetry } from "@jollytoad/worker-broker/opentelemetry";
+
+setTelemetry(openTelemetry());
+```
+
+If you use the default Worker constructor your Workers will automatically
+support OpenTelemetry by enabling it in the main thread.
+
+If you have a custom Worker constructor you must ensure you enable it in your
+custom Worker entrypoint. See the example app.
