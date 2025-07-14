@@ -1,7 +1,7 @@
 import { callWorkerFn } from "./callWorkerFn.ts";
 import { debug } from "./debug.ts";
 import { marshal } from "./marshal.ts";
-import { getTelemetry } from "@jollytoad/worker-broker/telemetry";
+import { getTelemetry } from "./telemetry.ts";
 import type {
   Fn,
   WorkerMsgCall,
