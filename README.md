@@ -205,6 +205,28 @@ self.onmessage = onmessage();
 Take a look at the example app for a more detailed example of Worker
 customization.
 
+### Worker reuse
+
+A Worker is created or reused based on a calculated key, by default this is a
+combination of the module URL (cache-busting hash removed) and segregation id
+(if given). Which means that a unique Worker is created for every module, or
+segregation id.
+
+In some situations you may want to reuse a Worker for multiple modules, or even
+use the segregation id to indicate sharing of a Worker.
+
+So you can supply your own key calculation function to the `WorkerBroker`...
+
+```ts
+const broker = new WorkerBroker({
+  workerKeySupplier: (moduleSpecifier, segregationId) => {
+    return moduleSpecifier.pathname.includes("common")
+      ? "common_worker"
+      : defaultWorkerKeySupplier(moduleSpecifier, segregationId);
+  },
+});
+```
+
 ### Worker clean-up
 
 Each new Worker uses a not insignificant amount of memory, and the WorkerBroker
@@ -353,3 +375,8 @@ support OpenTelemetry by enabling it in the main thread.
 
 If you have a custom Worker constructor you must ensure you enable it in your
 custom Worker entrypoint. See the example app.
+
+If you want a very lightweight tool for viewing the OpenTelemetry feed, try
+[otel-tui](https://github.com/ymtdzzz/otel-tui), start `otel-tui` in one
+terminal and then the OTEL enabled demo server in another:
+`deno task start:otel`.

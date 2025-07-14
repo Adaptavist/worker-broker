@@ -5,6 +5,20 @@ import type { WorkerBroker } from "../broker/mod.ts";
  */
 export interface WorkerBrokerOptions {
   /**
+   * A function to calculate a key for the Worker given the
+   * module specifier and segregation id.
+   *
+   * The default implementation will produce a unique key based on the
+   * module specifier and segregation id (if present).
+   *
+   * Using your own key supplier will allow you full control over reuse
+   * of Workers according to these values. So for example, you could share
+   * a Worker for multiple modules based on the module specifier, and/or
+   * based on the segregation id passed.
+   */
+  workerKeySupplier?: WorkerKeySupplier;
+
+  /**
    * A custom Worker construction function, if you want to
    * supply an alternative Worker module, or custom options.
    */
@@ -139,6 +153,17 @@ export type WorkerSupplier = (
 ) => Worker;
 
 /**
+ * A function that calculates a key for the Worker for the given module.
+ *
+ * The hash of the moduleSpecifier URL (which may be used for cache busting purposes)
+ * will have already been stripped from the URL.
+ */
+export type WorkerKeySupplier = (
+  moduleSpecifier: URL,
+  segregationId?: string,
+) => string;
+
+/**
  * A function called after a Worker is added or access from the WorkerBroker.
  * This may be used to implement a Worker cleanup strategy.
  */
@@ -230,7 +255,8 @@ export interface Telemetry {
   ): Promise<T>;
 
   /**
-   * Marshal the active telemetry context into the serializable context propagation format
+   * Marshal the active telemetry context into the serializable context
+   * propagation format.
    */
   marshalContext(): TelemetryContext;
 

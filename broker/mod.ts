@@ -5,6 +5,7 @@ import type {
   WorkerBrokerOptions,
   WorkerCleaner,
   WorkerEvent,
+  WorkerKeySupplier,
   WorkerProxy,
   WorkerProxyFactory,
   WorkerSpecifier,
@@ -28,6 +29,18 @@ export const defaultWorkerConstructor: WorkerSupplier = (
 ): Worker => new Worker(getTelemetry().defaultWorkerModule, { type: "module" });
 
 /**
+ * Default Worker key supplier function.
+ * The hash of the moduleSpecifier (which may be used for cache busting purposes) will
+ * have already been stripped from the URL.
+ */
+export const defaultWorkerKeySupplier: WorkerKeySupplier = (
+  moduleSpecifier: URL,
+  segregationId?: string,
+): string => {
+  return moduleSpecifier + (segregationId ? ` @${segregationId}` : "");
+};
+
+/**
  * Manage a pool of Workers, and communication between the Workers and the
  * main thread.
  */
@@ -36,6 +49,9 @@ export class WorkerBroker implements WorkerProxyFactory {
    * Create a WorkerBroker
    */
   constructor(options: WorkerBrokerOptions = {}) {
+    if (options.workerKeySupplier) {
+      this.#workerKeySupplier = options.workerKeySupplier;
+    }
     if (options.workerConstructor) {
       this.#workerConstructor = options.workerConstructor;
     }
@@ -43,6 +59,8 @@ export class WorkerBroker implements WorkerProxyFactory {
       this.#workerCleaner = options.workerCleaner;
     }
   }
+
+  #workerKeySupplier: WorkerKeySupplier = defaultWorkerKeySupplier;
 
   #workerConstructor: WorkerSupplier = defaultWorkerConstructor;
 
@@ -147,12 +165,12 @@ export class WorkerBroker implements WorkerProxyFactory {
 
   /**
    * Create a key for use with this.#workers map.
+   *
    * It will remove the hash (which may be set for cache busting purposes),
-   * and append a segregationId if specified.
+   * and use the registered `WorkerKeySupplier` to calculate the key.
    */
   #workerKey = (moduleSpecifier: URL, segregationId?: string): string => {
-    const moduleUrl = stripHash(moduleSpecifier);
-    return moduleUrl + (segregationId ? ` @${segregationId}` : "");
+    return this.#workerKeySupplier(stripHash(moduleSpecifier), segregationId);
   };
 
   /**
