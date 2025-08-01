@@ -2,14 +2,7 @@ import { onmessage } from "@jollytoad/worker-broker/onmessage";
 
 declare const self: Worker;
 
-function init() {
-  // const broker = brokerProxy();
-
-  // const logger = broker.workerFnProxy(
-  //   new URL("./trusted_workers/logger.ts", import.meta.url),
-  //   "logger"
-  // );
-
+function initialCall() {
   globalThis.console = new Proxy(globalThis.console, {
     get: (original, functionName, receiver) => {
       const ref = Reflect.get(original, functionName, receiver);
@@ -29,4 +22,4 @@ function init() {
 /**
  * This is the entry module for untrusted workers.
  */
-self.onmessage = onmessage(init);
+self.onmessage = onmessage({ initialCall });

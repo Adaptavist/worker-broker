@@ -172,11 +172,48 @@ export type WorkerCleaner = (
 ) => void;
 
 /**
+ * Functions called at various points within the Worker.
+ */
+export interface WorkerCallOptions {
+  /**
+   * Called on the first message, can be used to initialize the
+   * global environment within the Worker.
+   */
+  initialCall?: WorkerCallAdvice;
+
+  /**
+   * Called and awaited immediately before the worker fn,
+   * and within the same telemetry span.
+   *
+   * Throwing an error from this will propagate and prevent the
+   * worker fn from being called, but `afterCall` will still
+   * be called.
+   */
+  beforeCall?: WorkerCallAdvice;
+
+  /**
+   * Called and awaited immediately after the worker fn,
+   * and within the same telemetry span.
+   *
+   * Within a finally clause, so this is always called even if
+   * the worker fn or beforeCall throws an error.
+   */
+  afterCall?: WorkerCallAdvice;
+}
+
+/**
+ * A function that is called within the Worker to allow custom behaviours.
+ */
+export type WorkerCallAdvice<F extends Fn = Fn> = (
+  msg: WorkerMsgCall<F>,
+) => void | Promise<void>;
+
+/**
  * A event regarding an actual Worker
  */
 export interface WorkerEvent {
   /**
-   * The action that trigger the event
+   * The action that triggered the event
    */
   type: "create" | "get" | "remove";
   /**
@@ -186,7 +223,7 @@ export interface WorkerEvent {
   /**
    * An opaque unique key for the Worker, you can use
    * this to index information about Workers rather than
-   * the actual Worker (do not try to parse this)
+   * indexing the actual Worker (do not try to parse this)
    */
   key: string;
   /**
@@ -208,7 +245,7 @@ export interface WorkerEvent {
  */
 export interface WorkerBrokerEvent {
   /**
-   * The action that trigger the event
+   * The action that triggered the event
    */
   type: "terminate";
   /**

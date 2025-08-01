@@ -14,9 +14,9 @@ import type {
  */
 export const handleMessage = (getWorker: WorkerSupplier) =>
 async (
-  { data: incomingMsg }: MessageEvent<WorkerMsgCall<Fn>>,
+  { data: incomingMsg }: MessageEvent<unknown>,
 ): Promise<void> => {
-  if (incomingMsg.kind === "call" && incomingMsg.sourceModule) {
+  if (isWorkerMsgCall(incomingMsg) && incomingMsg.sourceModule) {
     await getTelemetry().msgSpan("handleMessage", incomingMsg, async () => {
       debug("container received call:", incomingMsg);
 
@@ -59,3 +59,8 @@ async (
     });
   }
 };
+
+function isWorkerMsgCall(msg: unknown): msg is WorkerMsgCall {
+  return !!msg && typeof msg === "object" && "kind" in msg &&
+    msg.kind === "call";
+}

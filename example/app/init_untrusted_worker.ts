@@ -1,4 +1,5 @@
 import { brokerProxy } from "@jollytoad/worker-broker/worker";
+import type { WorkerMsgCall } from "@jollytoad/worker-broker/types";
 
 /**
  * Initialization for untrusted workers, this is called once and only
@@ -11,7 +12,7 @@ import { brokerProxy } from "@jollytoad/worker-broker/worker";
  * It also locks down the fetch property itself to ensure that the
  * imported 'untrusted' worker module can no longer tamper with it.
  */
-export function init() {
+export function initialCall() {
   const broker = brokerProxy();
   const fetch = broker.workerFnProxy<typeof globalThis.fetch>(
     new URL("../workers/trusted/fetch_proxy.ts", import.meta.url),
@@ -24,6 +25,22 @@ export function init() {
     configurable: false,
     writable: false,
   });
+}
+
+/**
+ * A function called immediately before the Worker function is called.
+ */
+export function beforeCall(msg: WorkerMsgCall) {
+  console.debug("BEFORE: %s", msg.id);
+  performance.mark(`before-${msg.id}`);
+}
+
+/**
+ * A function called immediately after the Worker function is called.
+ */
+export function afterCall(msg: WorkerMsgCall) {
+  const measure = performance.measure(`call-${msg.id}`, `before-${msg.id}`);
+  console.debug("AFTER: %s (%fms)", msg.id, measure.duration);
 }
 
 /**

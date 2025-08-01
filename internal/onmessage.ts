@@ -1,4 +1,4 @@
-import type { WorkerMsgCall } from "./types.ts";
+import type { WorkerCallOptions, WorkerMsgCall } from "./types.ts";
 import { debug } from "./debug.ts";
 import { findTransferables } from "./transfer.ts";
 import { importAndCall } from "./importAndCall.ts";
@@ -33,11 +33,10 @@ export type OnMessageFn = (
  * It simply waits for function call messages, and will dynamically
  * import the target module when the first fn call msg is received.
  *
- * @param initialize optional function to be called on the first message,
- *   can be used to initialize the global environment within the Worker.
+ * @param options to customize behaviour of the Worker environment and function calls.
  */
 export function onmessage(
-  initialize?: () => void | Promise<void>,
+  options?: WorkerCallOptions,
 ): OnMessageFn {
   let ready = false;
 
@@ -51,12 +50,12 @@ export function onmessage(
 
           setSpecifier(callMsg.targetModule, callMsg.targetSegregationId);
 
-          await initialize?.();
+          await options?.initialCall?.(callMsg);
 
           ready = true;
         }
 
-        const resultMsg = await importAndCall(callMsg);
+        const resultMsg = await importAndCall(callMsg, options);
 
         debug("worker sending result:", resultMsg);
 
