@@ -1,5 +1,5 @@
 import { marshal, unmarshalArgs } from "./marshal.ts";
-import { getTelemetry } from "@jollytoad/worker-broker/telemetry";
+import { getTelemetry } from "./telemetry.ts";
 import type {
   Fn,
   WorkerCallOptions,
