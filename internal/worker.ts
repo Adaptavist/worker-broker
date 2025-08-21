@@ -1,6 +1,5 @@
+/// <reference lib="deno.worker" />
 import { onmessage } from "./onmessage.ts";
-
-declare const self: Worker;
 
 /**
  * This is the entry module for every worker.

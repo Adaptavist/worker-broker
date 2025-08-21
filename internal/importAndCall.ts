@@ -27,9 +27,19 @@ export const importAndCall = async <F extends Fn>(
         const args = msg.args?.length ? await unmarshalArgs(msg.args) : [];
 
         const result = await msgSpan("call", msg, async () => {
+          let inFunction = false;
           try {
             await options?.beforeCall?.(msg);
+            inFunction = true;
             return await fn.apply(msg, args);
+          } catch (error) {
+            if (inFunction && options?.onError) {
+              const result = await options?.onError(msg, error);
+              if (result !== undefined) {
+                return result;
+              }
+            }
+            throw error;
           } finally {
             await options?.afterCall?.(msg);
           }

@@ -1,6 +1,6 @@
 {
   "name": "@jollytoad/worker-broker",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "license": "MIT",
   "exports": {
     "./broker": "./broker/mod.ts",
@@ -27,8 +27,8 @@
     "@http/response": "jsr:@http/response@^0.26.0",
     "@http/route": "jsr:@http/route@^0.26.0",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
-    "@std/assert": "jsr:@std/assert@^1.0.13",
-    "@std/async": "jsr:@std/async@^1.0.13",
+    "@std/assert": "jsr:@std/assert@^1.0.14",
+    "@std/async": "jsr:@std/async@^1.0.14",
     "@std/fmt": "jsr:@std/fmt@^1.0.8"
   }
 }

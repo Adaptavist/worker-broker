@@ -1,8 +1,7 @@
+/// <reference lib="deno.worker" />
 import { onmessage } from "./onmessage.ts";
 import { openTelemetry } from "./opentelemetry.ts";
 import { setTelemetry } from "./telemetry.ts";
-
-declare const self: Worker;
 
 setTelemetry(openTelemetry());
 

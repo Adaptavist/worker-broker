@@ -1,3 +1,4 @@
+/// <reference lib="deno.worker" />
 import { brokerProxy } from "@jollytoad/worker-broker/worker";
 import type { WorkerMsgCall } from "@jollytoad/worker-broker/types";
 
@@ -44,11 +45,18 @@ export function afterCall(msg: WorkerMsgCall) {
 }
 
 /**
+ * A function called when an error is thrown from the Worker function.
+ */
+export function onError(msg: WorkerMsgCall, error: unknown) {
+  console.error("ERROR: %s %o", msg.id, error);
+}
+
+/**
  * Lockdown the environment in the untrusted Worker, to prevent
  * unwanted tampering.
  */
-export function lockdown(worker: Worker) {
-  Object.defineProperty(worker, "onmessage", {
+export function lockdown(scope: unknown) {
+  Object.defineProperty(scope, "onmessage", {
     configurable: false,
     writable: false,
   });

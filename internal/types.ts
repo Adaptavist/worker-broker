@@ -199,6 +199,12 @@ export interface WorkerCallOptions {
    * the worker fn or beforeCall throws an error.
    */
   afterCall?: WorkerCallAdvice;
+
+  /**
+   * Called and awaited when an error is thrown from a worker fn,
+   * within the same telemetry span.
+   */
+  onError?: WorkerCallErrorHandler;
 }
 
 /**
@@ -207,6 +213,18 @@ export interface WorkerCallOptions {
 export type WorkerCallAdvice<F extends Fn = Fn> = (
   msg: WorkerMsgCall<F>,
 ) => void | Promise<void>;
+
+/**
+ * A function that is called when an error is thrown from a worker fn.
+ *
+ * @return either a substitute result, which will suppress the error,
+ *   or undefined to allow the error to be re-thrown, or it may just
+ *   throw a new error.
+ */
+export type WorkerCallErrorHandler<F extends Fn = Fn> = (
+  msg: WorkerMsgCall<F>,
+  error: unknown,
+) => ReturnType<F> | void | Promise<ReturnType<F> | void>;
 
 /**
  * A event regarding an actual Worker

@@ -1,3 +1,4 @@
+/// <reference lib="deno.worker" />
 import { onmessage } from "@jollytoad/worker-broker/onmessage";
 import { openTelemetry } from "@jollytoad/worker-broker/opentelemetry";
 import { setTelemetry } from "@jollytoad/worker-broker/telemetry";
@@ -7,8 +8,6 @@ import {
   initialCall,
   lockdown,
 } from "./init_untrusted_worker.ts";
-
-declare const self: Worker;
 
 setTelemetry(openTelemetry());
 

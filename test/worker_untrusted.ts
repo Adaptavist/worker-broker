@@ -1,6 +1,5 @@
+/// <reference lib="deno.worker" />
 import { onmessage } from "@jollytoad/worker-broker/onmessage";
-
-declare const self: Worker;
 
 function initialCall() {
   globalThis.console = new Proxy(globalThis.console, {
