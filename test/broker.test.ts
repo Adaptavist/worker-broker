@@ -6,8 +6,8 @@ import {
   assertRejects,
   assertStrictEquals,
 } from "@std/assert";
-import { WorkerBroker } from "@jollytoad/worker-broker/broker";
-import { enableDebugging } from "@jollytoad/worker-broker/debug";
+import { WorkerBroker } from "@adaptavist/worker-broker/broker";
+import { enableDebugging } from "@adaptavist/worker-broker/debug";
 import type * as Gubbins from "./workers/gubbins.ts";
 import type * as Gateway from "./workers/gateway.ts";
 import type * as Stateful from "./workers/stateful.ts";

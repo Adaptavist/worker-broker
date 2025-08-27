@@ -1,5 +1,5 @@
 /// <reference lib="deno.worker" />
-import { onmessage } from "@jollytoad/worker-broker/onmessage";
+import { onmessage } from "@adaptavist/worker-broker/onmessage";
 import {
   afterCall,
   beforeCall,

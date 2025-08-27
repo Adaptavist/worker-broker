@@ -1,6 +1,6 @@
 /// <reference lib="deno.worker" />
-import { onmessage } from "@jollytoad/worker-broker/onmessage";
-import type { WorkerMsgCall } from "@jollytoad/worker-broker/types";
+import { onmessage } from "@adaptavist/worker-broker/onmessage";
+import type { WorkerMsgCall } from "@adaptavist/worker-broker/types";
 
 function initialCall(_msg: WorkerMsgCall) {
   self.postMessage("initialCall");

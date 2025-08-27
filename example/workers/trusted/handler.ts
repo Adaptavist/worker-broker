@@ -5,7 +5,7 @@ import { plainError } from "@http/response/plain-error";
 import {
   brokerProxy,
   type WorkerSpecifier,
-} from "@jollytoad/worker-broker/worker";
+} from "@adaptavist/worker-broker/worker";
 
 export default cascade(
   byPattern("/:moduleName/:functionName", async (_req, match) => {

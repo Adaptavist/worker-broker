@@ -1,7 +1,7 @@
 /// <reference lib="deno.worker" />
-import { onmessage } from "@jollytoad/worker-broker/onmessage";
-import { openTelemetry } from "@jollytoad/worker-broker/opentelemetry";
-import { setTelemetry } from "@jollytoad/worker-broker/telemetry";
+import { onmessage } from "@adaptavist/worker-broker/onmessage";
+import { openTelemetry } from "@adaptavist/worker-broker/opentelemetry";
+import { setTelemetry } from "@adaptavist/worker-broker/telemetry";
 import {
   afterCall,
   beforeCall,

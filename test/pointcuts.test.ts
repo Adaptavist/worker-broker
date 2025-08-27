@@ -1,5 +1,5 @@
-import { WorkerBroker } from "@jollytoad/worker-broker/broker";
-import { enableDebugging } from "@jollytoad/worker-broker/debug";
+import { WorkerBroker } from "@adaptavist/worker-broker/broker";
+import { enableDebugging } from "@adaptavist/worker-broker/debug";
 import { assertEquals } from "@std/assert";
 import type { getWelcome } from "./workers/other.ts";
 

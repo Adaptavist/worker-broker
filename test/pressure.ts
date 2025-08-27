@@ -1,6 +1,6 @@
-import { WorkerBroker } from "@jollytoad/worker-broker/broker";
-import { cleaner } from "@jollytoad/worker-broker/cleaner";
-import { enableDebugging } from "@jollytoad/worker-broker/debug";
+import { WorkerBroker } from "@adaptavist/worker-broker/broker";
+import { cleaner } from "@adaptavist/worker-broker/cleaner";
+import { enableDebugging } from "@adaptavist/worker-broker/debug";
 import { format as formatBytes } from "@std/fmt/bytes";
 import { format as formatTime } from "@std/fmt/duration";
 import { delay } from "@std/async/delay";

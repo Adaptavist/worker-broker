@@ -6,8 +6,8 @@ import type { Telemetry, TelemetryTools } from "./types.ts";
  *
  * @example
  * ```ts
- * import { setTelemetry } from "@jollytoad/worker-broker/telemetry";
- * import { openTelemetry } from "@jollytoad/worker-broker/opentelemetry";
+ * import { setTelemetry } from "@adaptavist/worker-broker/telemetry";
+ * import { openTelemetry } from "@adaptavist/worker-broker/opentelemetry";
  *
  * setTelemetry(openTelemetry());
  * ```

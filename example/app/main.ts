@@ -1,11 +1,11 @@
 #!/usr/bin/env -S deno run --allow-net --allow-read --allow-env --watch
 
-import { enableDebugging } from "@jollytoad/worker-broker/debug";
+import { enableDebugging } from "@adaptavist/worker-broker/debug";
 import init from "@http/host-deno-local/init";
 import { setState } from "../lib/state.ts";
 import handler from "./handler.ts";
-import { setTelemetry } from "@jollytoad/worker-broker/telemetry";
-import { openTelemetry } from "@jollytoad/worker-broker/opentelemetry";
+import { setTelemetry } from "@adaptavist/worker-broker/telemetry";
+import { openTelemetry } from "@adaptavist/worker-broker/opentelemetry";
 
 if (Deno.env.get("OTEL_DENO") === "true") {
   setTelemetry(openTelemetry());

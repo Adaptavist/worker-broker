@@ -1,7 +1,5 @@
 # Worker Broker
 
-**THIS IS VERY EXPERIMENTAL**
-
 The idea is to allow multiple untrusted code modules to act like microservices,
 interacting with each other via a 'WorkerBroker' with very low latencies.
 
@@ -13,15 +11,15 @@ functionality via JS/TS modules.
 
 ## Exported Modules
 
-NOTE: There is no default `@jollytoad/worker-broker` module, instead...
+NOTE: There is no default `@adaptavist/worker-broker` module, instead...
 
-- `@jollytoad/worker-broker/broker` - main broker, to be used by the core of the
-  system, NOT by worker modules.
-- `@jollytoad/worker-broker/worker` - utilities for use by modules within a
+- `@adaptavist/worker-broker/broker` - main broker, to be used by the core of
+  the system, NOT by worker modules.
+- `@adaptavist/worker-broker/worker` - utilities for use by modules within a
   Worker
-- `@jollytoad/worker-broker/onmessage` - the default Worker `onmessage` handler
-- `@jollytoad/worker-broker/debug` - enable/disable debugging logs
-- `@jollytoad/worker-broker/cleaner` - a WorkerCleaner that cleans out least
+- `@adaptavist/worker-broker/onmessage` - the default Worker `onmessage` handler
+- `@adaptavist/worker-broker/debug` - enable/disable debugging logs
+- `@adaptavist/worker-broker/cleaner` - a WorkerCleaner that cleans out least
   recently used Worker based on memory pressure and/or an overall Worker count
   limit
 
@@ -38,7 +36,7 @@ export function hello(name: string) {
 ### Creating a Worker and calling a function within it
 
 ```ts
-import { WorkerBroker } from "@jollytoad/worker-broker/broker";
+import { WorkerBroker } from "@adaptavist/worker-broker/broker";
 import type { hello } from "./hello.ts";
 
 // Create the WorkerBroker
@@ -101,7 +99,7 @@ As the general idea is to have a service provided by a module in Worker, you
 probably want to proxy all of the functions within the module rather just one...
 
 ```ts
-import { WorkerBroker } from "@jollytoad/worker-broker/broker";
+import { WorkerBroker } from "@adaptavist/worker-broker/broker";
 import type * as Hello from "./hello.ts";
 
 // Create the WorkerBroker
@@ -119,12 +117,12 @@ const result = await helloService.hello("World");
 ### Worker to Worker calls
 
 Workers can make calls to other workers using the functions exported from
-`@jollytoad/worker-broker/worker`.
+`@adaptavist/worker-broker/worker`.
 
 For example, the following module will make use of our `./hello.ts`:
 
 ```ts
-import { brokerProxy } from "@jollytoad/worker-broker/worker";
+import { brokerProxy } from "@adaptavist/worker-broker/worker";
 import type * as Hello from "./hello.ts";
 
 // Create a proxy to the WorkerBroker
@@ -195,7 +193,7 @@ We supply a function to create the `onmessage` handler within the worker, this
 is the most simple example of a Worker entry point module:
 
 ```ts
-import { onmessage } from "@jollytoad/worker-broker/onmessage";
+import { onmessage } from "@adaptavist/worker-broker/onmessage";
 
 declare const self: Worker;
 
@@ -240,8 +238,8 @@ We provide a simple default implementation of a WorkerCleaner, but you have to
 explicitly pass it to the WorkerBroker constructor...
 
 ```ts
-import { WorkerBroker } from "@jollytoad/worker-broker/broker";
-import { cleaner } from "@jollytoad/worker-broker/cleaner";
+import { WorkerBroker } from "@adaptavist/worker-broker/broker";
+import { cleaner } from "@adaptavist/worker-broker/cleaner";
 
 const broker = new WorkerBroker({
   workerCleaner: cleaner({
@@ -364,8 +362,8 @@ the main thread where the WorkerBroker exists, and in the Workers.
 In your main entrypoint:
 
 ```ts
-import { setTelemetry } from "@jollytoad/worker-broker/telemetry";
-import { openTelemetry } from "@jollytoad/worker-broker/opentelemetry";
+import { setTelemetry } from "@adaptavist/worker-broker/telemetry";
+import { openTelemetry } from "@adaptavist/worker-broker/opentelemetry";
 
 setTelemetry(openTelemetry());
 ```

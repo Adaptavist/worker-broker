@@ -1,8 +1,8 @@
 import {
   WorkerBroker,
   type WorkerSupplier,
-} from "@jollytoad/worker-broker/broker";
-import { getTelemetry } from "@jollytoad/worker-broker/telemetry";
+} from "@adaptavist/worker-broker/broker";
+import { getTelemetry } from "@adaptavist/worker-broker/telemetry";
 
 const untrustedWorkerModule = Deno.env.get("OTEL_DENO") === "true"
   ? import.meta.resolve("./untrusted_worker_otel.ts")

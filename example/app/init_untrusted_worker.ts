@@ -1,6 +1,6 @@
 /// <reference lib="deno.worker" />
-import { brokerProxy } from "@jollytoad/worker-broker/worker";
-import type { WorkerMsgCall } from "@jollytoad/worker-broker/types";
+import { brokerProxy } from "@adaptavist/worker-broker/worker";
+import type { WorkerMsgCall } from "@adaptavist/worker-broker/types";
 
 /**
  * Initialization for untrusted workers, this is called once and only

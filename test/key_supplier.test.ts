@@ -1,6 +1,6 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
-import { WorkerBroker } from "@jollytoad/worker-broker/broker";
-import { enableDebugging } from "@jollytoad/worker-broker/debug";
+import { WorkerBroker } from "@adaptavist/worker-broker/broker";
+import { enableDebugging } from "@adaptavist/worker-broker/debug";
 import type { setState } from "./workers/sibling_one.ts";
 import type { getState } from "./workers/sibling_two.ts";
 

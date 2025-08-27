@@ -1,4 +1,4 @@
-import { brokerProxy } from "@jollytoad/worker-broker/worker";
+import { brokerProxy } from "@adaptavist/worker-broker/worker";
 import type * as Responses from "./responses.ts";
 
 const broker = brokerProxy();
