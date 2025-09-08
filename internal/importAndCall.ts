@@ -1,4 +1,5 @@
 import { marshal, unmarshalArgs } from "./marshal.ts";
+import { createResult } from "./result.ts";
 import { getTelemetry } from "./telemetry.ts";
 import type {
   Fn,
@@ -60,9 +61,5 @@ export const importAndCall = async <F extends Fn>(
     };
   }
 
-  return {
-    ...msg,
-    kind: "result",
-    ...props,
-  };
+  return createResult(msg, props);
 };

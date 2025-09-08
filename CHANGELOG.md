@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [1.1.0] - 2025-09-08
+
+### Changed
+
+- Remove `args` from `WorkerMsgResult` to avoid attempting to clone an already
+  detached transferable object
+
 ## [1.0.0] - 2025-08-27
 
 - Ownership transferred to https://github.com/Adaptavist/worker-broker

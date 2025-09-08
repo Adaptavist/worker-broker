@@ -1,6 +1,7 @@
 import { callWorkerFn } from "./callWorkerFn.ts";
 import { debug } from "./debug.ts";
 import { marshal } from "./marshal.ts";
+import { createResult } from "./result.ts";
 import { getTelemetry } from "./telemetry.ts";
 import type {
   Fn,
@@ -42,11 +43,7 @@ async (
         };
       }
 
-      const resultMsg: WorkerMsgResult<Fn> = {
-        ...incomingMsg,
-        kind: "result",
-        ...props,
-      };
+      const resultMsg = createResult(incomingMsg, props);
 
       debug("container forwarding result:", resultMsg);
 

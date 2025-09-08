@@ -120,9 +120,12 @@ export interface WorkerMsgCall<F extends Fn = Fn> {
 
 /**
  * The representation of the result from a Worker function.
+ *
+ * The original args are not included in case they contain objects
+ * that have been transferred/detached and cannot be re-cloned.
  */
 export interface WorkerMsgResult<F extends Fn = Fn>
-  extends Omit<WorkerMsgCall<F>, "kind"> {
+  extends Omit<WorkerMsgCall<F>, "kind" | "args"> {
   /**
    * Indicate a result of a function call
    */
